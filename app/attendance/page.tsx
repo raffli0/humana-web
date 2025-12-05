@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { attendance } from "../utils/mockData";
-import  AttendanceMap  from "../attendance/AttendanceMap";
+import AttendanceMap from "../attendance/AttendanceMap";
 
 export default function Attendance() {
   const [selectedDate, setSelectedDate] = useState("2024-11-24");
@@ -28,7 +28,7 @@ export default function Attendance() {
   };
 
   return (
-    <div className="space-y-6">
+    <main className="min-h-screen overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-gray-900">Attendance</h2>
@@ -57,11 +57,10 @@ export default function Attendance() {
                 <div
                   key={record.id}
                   onClick={() => setSelectedAttendance(record)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedAttendance?.id === record.id
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAttendance?.id === record.id
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
@@ -154,6 +153,6 @@ export default function Attendance() {
           </Card>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

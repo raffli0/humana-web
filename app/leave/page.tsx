@@ -16,7 +16,7 @@ export default function LeaveRequest() {
 
   const filteredRequests = leaveRequests.filter(request => {
     const matchesSearch = request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         request.type.toLowerCase().includes(searchQuery.toLowerCase());
+      request.type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "All" || request.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -51,7 +51,7 @@ export default function LeaveRequest() {
   const approvedCount = leaveRequests.filter(r => r.status === "Approved").length;
 
   return (
-    <div className="space-y-6">
+    <main className="min-h-screen overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-gray-900">Leave Requests</h2>
@@ -211,6 +211,6 @@ export default function LeaveRequest() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </main>
   );
 }
