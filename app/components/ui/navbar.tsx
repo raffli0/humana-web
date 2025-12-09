@@ -11,7 +11,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "Employees", href: "/employee" },
   { name: "Attendance", href: "/attendance" },
-  { name: "Payroll", href: "/" },
+  { name: "Payroll", href: "/payroll" },
   { name: "Leave Requests", href: "/leave" },
   { name: "Recruitments", href: "/recruitment" },
 ];
