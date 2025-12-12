@@ -26,8 +26,8 @@ export default function Employees() {
         <main className="min-h-screen overflow-y-auto p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-gray-900">Employees</h2>
-                    <p className="text-gray-600">Manage your team members</p>
+                    <h2 className="text-2xl font-semibold tracking-tight">Employees</h2>
+                    <p className="mt-1 text-sm text-gray-600">Manage your team members</p>
                 </div>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                     <Plus className="w-4 h-4 mr-2" />

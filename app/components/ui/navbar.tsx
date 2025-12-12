@@ -32,10 +32,10 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full backdrop-blur-md border-b border-white/10 transition-colors duration-300",
-        scrolled
-          ? "bg-slate-950/80"
-          : "bg-slate-950/20"
+        "sticky top-0 z-50 w-full backdrop-blur-xl border-b transition-colors duration-300 bg-[#0C212F] border-white-10",
+        // scrolled
+        //   ? "bg-[#0C212F]/80 border-white/10"   // saat scroll
+        //   : "bg-[#0C212F]/70 border-white/5"    // not scrolled
       )}
     >
       <nav className="flex items-center justify-between px-6 py-4">

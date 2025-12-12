@@ -7,6 +7,19 @@ import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { leaveRequests } from "../utils/mockData";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../components/ui/alert-dialog";
+import { rejects } from "assert";
+
 
 export default function LeaveRequest() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,8 +67,8 @@ export default function LeaveRequest() {
     <main className="min-h-screen overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-gray-900">Leave Requests</h2>
-          <p className="text-gray-600">Manage employee leave applications</p>
+          <h2 className="text-2xl font-semibold tracking-tight">Leave Requests</h2>
+          <p className="mt-1 text-sm text-gray-600">Manage employee leave applications</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -188,12 +201,74 @@ export default function LeaveRequest() {
                 <div className="flex gap-2 flex-shrink-0">
                   {request.status === "Pending" && (
                     <>
-                      <Button variant="outline" className="text-red-600 hover:bg-red-50">
+                      {/* <Button variant="outline" className="text-red-600 hover:bg-red-50">
                         Reject
                       </Button>
                       <Button className="bg-green-600 hover:bg-green-700">
                         Approve
-                      </Button>
+                      </Button> */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" className="text-red-600 hover:bg-red-50">
+                            Reject
+                          </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Reject this request?
+                            </AlertDialogTitle>
+
+                            <AlertDialogDescription>
+                              This action cannot be undone. The employee will be notified of this rejection.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                            <AlertDialogAction
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                              // onClick={}
+                            >
+                              Reject
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      {/* Approve Dialog */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button className="bg-green-600 hover:bg-green-700">
+                            Approve
+                          </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Approve this request?
+                            </AlertDialogTitle>
+
+                            <AlertDialogDescription>
+                              Once approved, this request will be marked as completed.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                            <AlertDialogAction
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              // onClick={ }
+                            >
+                              Approve
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </>
                   )}
                   <Button variant="outline">View Details</Button>

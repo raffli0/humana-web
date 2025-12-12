@@ -127,13 +127,13 @@ export default function Dashboard() {
     ];
 
     return (
-        <main className="min-h-screen overflow-y-auto p-6 space-y-6 bg-[#0c212f] text-white">
+        <main className="min-h-screen overflow-y-auto p-6 space-y-6 bg-white text-gray-900">
             {/* greeting */}
             <section>
                 <h1 className="text-2xl font-semibold tracking-tight">
                     Welcome back, Pristia!
                 </h1>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-gray-600">
                     Here is your company&apos;s payroll and employee overview
                     for this month.
                 </p>
@@ -142,27 +142,28 @@ export default function Dashboard() {
 
             {/* Main grid */}
             <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-                <Card className="p-6 space-y-6 bg-slate-900/60 border-slate-800">
-                    {/* Header Payroll */}
+                {/* Payroll section */}
+                <Card className="p-6 space-y-1 bg-[#f5f5f5] border border-gray-200 shadow-sm rounded-xl">
+                    {/* Header payroll */}
                     <div>
-                        <h2 className="text-sm font-semibold tracking-tight">
+                        <h2 className="text-sb font-semibold tracking-tight text-gray-900">
                             Payroll
                         </h2>
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="mt-1 text-xs text-gray-600">
                             This is your payroll summary report so far.
                         </p>
                     </div>
 
-                    {/* grid left */}
                     <div className="space-y-6">
+                        {/* grid left */}
                         {/* Nested card: Payroll Summary Chart */}
-                        <Card className="bg-slate-900/70 border-slate-800">
+                        <Card className="bg-white border border-gray-200 shadow-sm rounded-lg">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <div>
-                                    <CardTitle className="text-sm text-white">
+                                    <CardTitle className="text-sm text-gray-900">
                                         Payroll Summary
                                     </CardTitle>
-                                    <CardDescription className="text-xs text-white">
+                                    <CardDescription className="text-xs text-gray-500">
                                         Gross salary, taxes and net salary overview
                                     </CardDescription>
                                 </div>
@@ -170,7 +171,7 @@ export default function Dashboard() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-7 rounded-full border-slate-700 bg-slate-900/70 text-[11px] text-white">
+                                    className="h-7 rounded-full border-gray-300 text-gray-700">
                                     2023
                                     <ChevronDown className="ml-1 h-3 w-3" />
                                 </Button>
@@ -179,24 +180,26 @@ export default function Dashboard() {
                             <CardContent className="h-60 pt-0">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={payrollData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                         <XAxis
                                             dataKey="month"
                                             tickLine={false}
                                             axisLine={false}
-                                            tick={{ fontSize: 11, fill: "#9ca3af" }}
+                                            tick={{ fontSize: 11, fill: "#6b7280" }}
                                         />
                                         <YAxis
                                             tickLine={false}
                                             axisLine={false}
-                                            tick={{ fontSize: 11, fill: "#9ca3af" }}
+                                            tick={{ fontSize: 11, fill: "#6b7280" }}
                                         />
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: "#020617",
-                                                borderRadius: 12,
-                                                border: "1px solid #1f2937",
+                                                backgroundColor: "#ffffff",
+                                                border: "1px solid #e5e7eb",
+                                                borderRadius: "8px",
                                                 fontSize: 11,
+                                                color: "#111827",
+
                                             }}
                                         />
                                         <Line
@@ -219,28 +222,30 @@ export default function Dashboard() {
                         </Card>
 
                         {/* Payment Status */}
-                        <Card className="border-slate-800 bg-slate-900/70">
+                        <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm">
+                                <CardTitle className="text-sm text-gray-900">
                                     Payment Status
                                 </CardTitle>
-                                <CardDescription className="text-xs">
+                                <CardDescription className="text-xs text-gray-600">
                                     {paymentStatus.totalEmployees} employees
                                 </CardDescription>
                             </CardHeader>
+
                             <CardContent className="space-y-3">
+
                                 {/* Paid */}
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className="text-slate-300">Successfully Paid</span>
-                                    <span className="font-medium text-slate-100">
+                                    <span className="text-gray-600">Successfully Paid</span>
+                                    <span className="font-medium text-gray-900">
                                         {paymentStatus.paid}%
                                     </span>
                                 </div>
                                 <Progress value={paymentStatus.paid} className="h-1.5" />
                                 {/* Pending */}
                                 <div className="mt-2 flex items-center justify-between text-xs">
-                                    <span className="text-slate-300">Pending</span>
-                                    <span className="font-medium text-slate-100">
+                                    <span className="text-gray-600">Pending</span>
+                                    <span className="font-medium text-gray-900">
                                         {paymentStatus.pending}%
                                     </span>
                                 </div>
@@ -250,8 +255,8 @@ export default function Dashboard() {
                                 />
                                 {/* Unpaid */}
                                 <div className="mt-2 flex items-center justify-between text-xs">
-                                    <span className="text-slate-300">Unpaid</span>
-                                    <span className="font-medium text-slate-100">
+                                    <span className="text-gray-600">Unpaid</span>
+                                    <span className="font-medium text-gray-900">
                                         {paymentStatus.unpaid}%
                                     </span>
                                 </div>
@@ -266,13 +271,14 @@ export default function Dashboard() {
 
                 {/* Main grid right */}
                 <div className="space-y-6">
-                    <Card className="p-6 space-y-6 bg-slate-900/60 border-slate-800">
+
+                    <Card className="p-6 space-y-1 bg-[#f5f5f5] border border-gray-200 shadow-sm rounded-xl">
                         {/* Header Overview */}
                         <div>
-                            <h2 className="text-sm font-semibold tracking-tight">
+                            <h2 className="text-sm font-semibold tracking-tight text-gray-900">
                                 Overview
                             </h2>
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-gray-600">
                                 It's all about employee.
                             </p>
                         </div>
@@ -280,29 +286,30 @@ export default function Dashboard() {
                         {/* grid 2 kolom */}
                         <div className="space-y-6">
                             {/* Latest Payment */}
-                            <Card className="border-slate-800 bg-slate-900/70">
+                            <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <div>
-                                        <CardTitle className="text-sm">
+                                        <CardTitle className="text-sm text-gray-900">
                                             Latest Payment
                                         </CardTitle>
-                                        <CardDescription className="text-xs">
+                                        <CardDescription className="text-xs text-gray-600">
                                             Recent salary disbursement
                                         </CardDescription>
                                     </div>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-7 px-2 text-[11px] text-slate-400"
+                                        className="h-7 px-2 text-[11px] text-gray-500"
                                     >
                                         View all
                                     </Button>
                                 </CardHeader>
+
                                 <CardContent className="space-y-3">
                                     {latestPayments.map((p) => (
                                         <div
                                             key={p.name}
-                                            className="flex items-center justify-between rounded-lg bg-slate-900/80 px-2.5 py-2"
+                                            className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-2"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Avatar className="h-8 w-8">
@@ -315,29 +322,26 @@ export default function Dashboard() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex flex-col">
-                                                    <span className="text-xs font-semibold">
-                                                        {p.name}
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-400">
-                                                        {p.role}
-                                                    </span>
+                                                    <span className="text-xs font-semibold text-gray-900">{p.name}</span>
+                                                    <span className="text-[11px] text-gray-500">{p.role}</span>
                                                 </div>
                                             </div>
+
                                             <div className="flex flex-col items-end gap-1">
-                                                <span className="text-xs font-semibold">
+                                                <span className="text-xs font-semibold text-gray-900">
                                                     {p.amount}
                                                 </span>
                                                 <div className="flex items-center gap-2">
                                                     <Badge
                                                         variant="outline"
                                                         className={`border-0 px-1.5 py-0 text-[10px] ${p.status === "PAID"
-                                                            ? "bg-emerald-500/15 text-emerald-300"
-                                                            : "bg-amber-500/15 text-amber-300"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-orange-100 text-orange-700"
                                                             }`}
                                                     >
                                                         {p.status}
                                                     </Badge>
-                                                    <span className="text-[10px] text-slate-500">
+                                                    <span className="text-[10px] text-gray-500">
                                                         {p.date}
                                                     </span>
                                                 </div>
@@ -348,28 +352,30 @@ export default function Dashboard() {
                             </Card>
 
                             {/* Payment report footer (optional simple row) */}
-                            <Card className="border-slate-800 bg-slate-900/70">
+                            <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
                                 <CardHeader className="pb-1">
-                                    <CardTitle className="text-sm">
+                                    <CardTitle className="text-sm text-gray-900">
                                         Payment Report
                                     </CardTitle>
-                                    <CardDescription className="text-xs">
+                                    <CardDescription className="text-xs text-gray-600">
                                         11 Jan – 4 Apr 2023
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-4 text-[11px] text-slate-400">
+                                    <div className="grid grid-cols-4 text-[11px] text-gray-500">
                                         <span>Type</span>
                                         <span>Amount</span>
                                         <span>Status</span>
                                         <span className="text-right">Action</span>
                                     </div>
-                                    <Separator className="my-2 bg-slate-800" />
+
+                                    <Separator className="my-2 bg-gray-200" />
+
                                     <div className="grid grid-cols-4 items-center text-xs">
-                                        <span>lorem</span>
-                                        <span>$1,200</span>
-                                        <span className="text-emerald-400">Paid</span>
-                                        <div className="text-right text-[11px] text-indigo-300">
+                                        <span className="text-gray-700">lorem</span>
+                                        <span className="text-gray-900">$1,200</span>
+                                        <span className="text-emerald-600">Paid</span>
+                                        <div className="text-right text-[11px] text-indigo-600 cursor-pointer">
                                             View detail
                                         </div>
                                     </div>
@@ -380,16 +386,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-
-
-
-
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => {
                     const Icon = stat.icon;
                     return (
-                        <Card key={stat.title}>
+                        <Card className="border-gray-200 shadow-sm" key={stat.title}>
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -421,7 +423,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Leave Requests */}
-                <Card>
+                <Card className="border-gray-200 shadow-sm">
                     <CardHeader>
                         <CardTitle>Recent Leave Requests</CardTitle>
                     </CardHeader>
@@ -449,7 +451,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Department Distribution */}
-                <Card>
+                <Card className="border-gray-200 shadow-sm">
                     <CardHeader>
                         <CardTitle>Department Distribution</CardTitle>
                     </CardHeader>
@@ -475,7 +477,7 @@ export default function Dashboard() {
             </div>
 
             {/* Attendance Overview */}
-            <Card>
+            <Card className="border-gray-200 shadow-sm">
                 <CardHeader>
                     <CardTitle>Today's Attendance Overview</CardTitle>
                 </CardHeader>

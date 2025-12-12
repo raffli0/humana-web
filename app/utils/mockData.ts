@@ -8,7 +8,7 @@ export const employees = [
     joinDate: "2022-01-15",
     phone: "+62 812-3456-7890",
     status: "Active",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+    avatar: "https://avatars.githubusercontent.com/u/1"
   },
   {
     id: "EMP002",
