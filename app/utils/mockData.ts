@@ -8,7 +8,7 @@ export const employees = [
     joinDate: "2022-01-15",
     phone: "+62 812-3456-7890",
     status: "Active",
-    avatar: "https://avatars.githubusercontent.com/u/1"
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
   },
   {
     id: "EMP002",
@@ -64,6 +64,17 @@ export const employees = [
     phone: "+62 817-8901-2345",
     status: "Active",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David"
+  },
+    {
+    id: "EMP007",
+    name: "Kim Jong Un",
+    email: "Kim.jong@humana.com",
+    department: "Finance",
+    position: "Financial Analyst",
+    joinDate: "2021-11-08",
+    phone: "+62 817-8901-2345",
+    status: "Active",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kim"
   }
 ];
 

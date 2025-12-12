@@ -4,9 +4,10 @@ import { useState } from "react";
 import { MapPin, Calendar, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Button } from "../components/ui/button";
-import { attendance } from "../utils/mockData";
+import { attendance, employees } from "../utils/mockData";
 import AttendanceMap from "../attendance/AttendanceMap";
+import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+
 
 export default function Attendance() {
   const [selectedDate, setSelectedDate] = useState("2024-11-24");
@@ -25,6 +26,10 @@ export default function Attendance() {
       default:
         return "bg-gray-100 text-gray-700";
     }
+  };
+
+  const getEmployee = (id: string) => {
+    return employees.find((e) => e.id === id);
   };
 
   return (
@@ -49,57 +54,94 @@ export default function Attendance() {
         {/* Attendance List */}
         <div className="space-y-4">
           <Card>
+
             <CardHeader>
               <CardTitle>Attendance Records</CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-3">
-              {filteredAttendance.map((record) => (
-                <div
-                  key={record.id}
-                  onClick={() => setSelectedAttendance(record)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAttendance?.id === record.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                    }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-300 rounded-full" />
-                      <div>
-                        <p className="text-gray-900">{record.employeeName}</p>
-                        <p className="text-gray-600">{record.employeeId}</p>
-                      </div>
-                    </div>
-                    <Badge className={getStatusColor(record.status)}>
-                      {record.status}
-                    </Badge>
-                  </div>
+              {filteredAttendance.map((record) => {
+                const employee = getEmployee(record.employeeId);
 
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <p className="text-gray-600">Check In</p>
-                        <p className="text-gray-900">{record.checkIn || "-"}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <p className="text-gray-600">Check Out</p>
-                        <p className="text-gray-900">{record.checkOut || "-"}</p>
-                      </div>
-                    </div>
-                  </div>
+                return (
+                  <div
+                    key={record.id}
+                    onClick={() => setSelectedAttendance(record)}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAttendance?.id === record.id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                      }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
 
-                  {record.location && (
-                    <div className="flex items-center gap-2 mt-3 text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span>{record.location.address}</span>
+                        {/* ⭐ FIXED AVATAR */}
+                        <Avatar className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 bg-gray-50">
+                          <AvatarImage
+                            src={
+                              employee?.avatar ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                record.employeeName
+                              )}`
+                            }
+                            className="object-cover scale-[0.90]"
+                          />
+                          <AvatarFallback className="text-gray-700 bg-gray-200">
+                            {record.employeeName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Employee Info */}
+                        <div>
+                          <p className="text-gray-900 font-medium">
+                            {record.employeeName}
+                          </p>
+                          <p className="text-gray-600 text-sm">
+                            {record.employeeId}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Badge className={getStatusColor(record.status)}>
+                        {record.status}
+                      </Badge>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {/* Times */}
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="text-gray-600 text-sm">Check In</p>
+                          <p className="text-gray-900">
+                            {record.checkIn || "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="text-gray-600 text-sm">Check Out</p>
+                          <p className="text-gray-900">
+                            {record.checkOut || "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    {record.location && (
+                      <div className="flex items-center gap-2 mt-3 text-gray-600 text-sm">
+                        <MapPin className="w-4 h-4" />
+                        <span>{record.location.address}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         </div>

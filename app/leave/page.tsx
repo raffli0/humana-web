@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { leaveRequests } from "../utils/mockData";
+import { leaveRequests, employees } from "../utils/mockData";
+import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -18,7 +19,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
-import { rejects } from "assert";
+
 
 
 export default function LeaveRequest() {
@@ -62,6 +63,10 @@ export default function LeaveRequest() {
 
   const pendingCount = leaveRequests.filter(r => r.status === "Pending").length;
   const approvedCount = leaveRequests.filter(r => r.status === "Approved").length;
+
+  const getEmployee = (id: string) => {
+    return employees.find((e) => e.id === id);
+  };
 
   return (
     <main className="min-h-screen overflow-y-auto p-6 space-y-6">
@@ -167,117 +172,134 @@ export default function LeaveRequest() {
       </Card>
 
       {/* Leave Requests List */}
+      {/* Leave Requests List */}
       <div className="space-y-4">
-        {filteredRequests.map((request) => (
-          <Card key={request.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <h3 className="text-gray-900">{request.employeeName}</h3>
-                      <Badge className={getStatusColor(request.status)}>
-                        {request.status}
-                      </Badge>
-                      <Badge className={getTypeColor(request.type)}>
-                        {request.type}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-600 mb-2">{request.reason}</p>
-                    <div className="flex flex-wrap gap-4 text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {request.startDate} - {request.endDate}
-                        </span>
+        {filteredRequests.map((request) => {
+          const employee = getEmployee(request.employeeId);
+
+          return (
+            <Card key={request.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+                  <div className="flex items-start gap-4">
+                    
+                    {/* FIXED AVATAR */}
+                    <Avatar className="h-12 w-12 rounded-full bg-gray-200 overflow-hidden">
+                      <AvatarImage
+                        src={
+                          employee?.avatar ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            request.employeeName
+                          )}`
+                        }
+                      />
+                      <AvatarFallback>
+                        {request.employeeName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Request info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <h3 className="text-gray-900">{request.employeeName}</h3>
+
+                        <Badge className={getStatusColor(request.status)}>
+                          {request.status}
+                        </Badge>
+
+                        <Badge className={getTypeColor(request.type)}>
+                          {request.type}
+                        </Badge>
                       </div>
-                      <span>Duration: {request.days} days</span>
-                      <span>Requested: {request.requestDate}</span>
+
+                      <p className="text-gray-600 mb-2">{request.reason}</p>
+
+                      <div className="flex flex-wrap gap-4 text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {request.startDate} - {request.endDate}
+                          </span>
+                        </div>
+
+                        <span>Duration: {request.days} days</span>
+                        <span>Requested: {request.requestDate}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-2 flex-shrink-0">
-                  {request.status === "Pending" && (
-                    <>
-                      {/* <Button variant="outline" className="text-red-600 hover:bg-red-50">
-                        Reject
-                      </Button>
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        Approve
-                      </Button> */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" className="text-red-600 hover:bg-red-50">
-                            Reject
-                          </Button>
-                        </AlertDialogTrigger>
-
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Reject this request?
-                            </AlertDialogTitle>
-
-                            <AlertDialogDescription>
-                              This action cannot be undone. The employee will be notified of this rejection.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                            <AlertDialogAction
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                              // onClick={}
+                  {/* Actions */}
+                  <div className="flex gap-2 flex-shrink-0">
+                    {request.status === "Pending" && (
+                      <>
+                        {/* Reject Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="text-red-600 hover:bg-red-50"
                             >
                               Reject
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                            </Button>
+                          </AlertDialogTrigger>
 
-                      {/* Approve Dialog */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button className="bg-green-600 hover:bg-green-700">
-                            Approve
-                          </Button>
-                        </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Reject this request?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. The employee will be notified.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
 
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Approve this request?
-                            </AlertDialogTitle>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white">
+                                Reject
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
 
-                            <AlertDialogDescription>
-                              Once approved, this request will be marked as completed.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                            <AlertDialogAction
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              // onClick={ }
-                            >
+                        {/* Approve Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button className="bg-green-600 hover:bg-green-700">
                               Approve
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </>
-                  )}
-                  <Button variant="outline">View Details</Button>
+                            </Button>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Approve this request?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will mark the request as approved.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-green-600 hover:bg-green-700 text-white">
+                                Approve
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+
+                    <Button variant="outline">View Details</Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
+
 
       {filteredRequests.length === 0 && (
         <Card>

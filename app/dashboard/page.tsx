@@ -76,7 +76,6 @@ export default function Dashboard() {
     const presentToday = todayAttendance.filter(a => a.status === "Present" || a.status === "Late").length;
     const pendingLeaves = leaveRequests.filter(lr => lr.status === "Pending").length;
     const openPositions = recruitments.filter(r => r.status === "Open").length;
-    const totalEmployees = 121;
     const donutTotal = employeeBreakdown.reduce(
         (acc, cur) => acc + cur.value,
         0
