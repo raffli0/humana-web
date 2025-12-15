@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { cn } from "../ui/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { ChevronDown, Icon, Menu, X } from "lucide-react";
+
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { ProfileDropdown } from "./profile-dropdown";
+
 import {
   LayoutDashboard,
   Users,
@@ -48,7 +51,7 @@ export default function Navbar() {
         //   : "bg-[#0C212F]/70 border-white/5"    // not scrolled
       )}
     >
-  <nav className="grid grid-cols-[1fr_auto_1fr] items-center px-6 py-4">
+      <nav className="grid grid-cols-[1fr_auto_1fr] items-center px-6 py-4">
 
         {/* Logo */}
         <div className="text-lg font-semibold tracking-tight text-white">Humana</div>
@@ -101,7 +104,7 @@ export default function Navbar() {
 
 
         {/* Profile */}
-        <div className="hidden md:flex items-end justify-end">
+        {/* <div className="hidden md:flex items-end justify-end">
           <button className="flex items-center gap-2 rounded-full bg-slate-900/70 px-2 py-1 ring-1 ring-slate-800 hover:ring-slate-700 transition cursor-pointer">
             <Avatar className="h-8 w-8">
               <AvatarImage src="https://avatars.githubusercontent.com/u/1" />
@@ -116,8 +119,20 @@ export default function Navbar() {
               </span>
             </div>
             <ChevronDown className="ml-1 h-3 w-3 text-slate-400" />
-          </button>
-        </div>
+          </button> */}
+
+          <div className="hidden md:flex justify-end">
+            <ProfileDropdown
+              name="Pristia Candra"
+              email="pristia@pickhub.com"
+              avatarUrl="https://avatars.githubusercontent.com/u/1"
+              onProfile={() => console.log("Profile")}
+              onSettings={() => console.log("Settings")}
+              onLogout={() => console.log("Logout")}
+            />
+          </div>
+
+        {/* </div> */}
 
       </nav>
     </header>
