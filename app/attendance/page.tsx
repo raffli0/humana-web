@@ -75,7 +75,7 @@ export default function Attendance() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
 
-                        {/* ⭐ FIXED AVATAR */}
+                        {/* FIXED AVATAR */}
                         <Avatar className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 bg-gray-50">
                           <AvatarImage
                             src={

@@ -75,7 +75,16 @@ export default function LeaveRequest() {
           <h2 className="text-2xl font-semibold tracking-tight">Leave Requests</h2>
           <p className="mt-1 text-sm text-gray-600">Manage employee leave applications</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="
+          bg-blue-600 
+          hover:bg-blue-700
+          text-white
+          cursor-pointer
+          transition-all duration-150
+          hover:-translate-y-px
+          active:translate-y-0
+          ">
           <Plus className="w-4 h-4 mr-2" />
           New Request
         </Button>
@@ -152,7 +161,16 @@ export default function LeaveRequest() {
                 placeholder="Search by employee name or leave type..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="
+                pl-10
+                border-slate-300    
+                shadow-sm
+                transition-all duration-200 ease-out
+                focus-visible:outline-none
+                focus-visible:border-slate-500
+                focus-visible:ring-2
+                focus-visible:ring-slate-500/20
+                "
               />
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -161,7 +179,8 @@ export default function LeaveRequest() {
                   key={status}
                   variant={filterStatus === status ? "default" : "outline"}
                   onClick={() => setFilterStatus(status)}
-                  className={filterStatus === status ? "bg-blue-600" : ""}
+                  className={filterStatus === status ? "bg-blue-600 text-white border-blue-600 shadow-none cursor-pointer"
+                    : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"}
                 >
                   {status}
                 </Button>
@@ -183,7 +202,7 @@ export default function LeaveRequest() {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
                   <div className="flex items-start gap-4">
-                    
+
                     {/* FIXED AVATAR */}
                     <Avatar className="h-12 w-12 rounded-full bg-gray-200 overflow-hidden">
                       <AvatarImage
@@ -241,7 +260,7 @@ export default function LeaveRequest() {
                           <AlertDialogTrigger asChild>
                             <Button
                               variant="outline"
-                              className="text-red-600 hover:bg-red-50"
+                              className="text-red-600 hover:bg-red-50 hover:translate-y-px cursor-pointer"
                             >
                               Reject
                             </Button>
@@ -256,8 +275,8 @@ export default function LeaveRequest() {
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white">
+                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-red-600 hover:bg-red-700 hover:translate-y-px text-white cursor-pointer">
                                 Reject
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -267,7 +286,7 @@ export default function LeaveRequest() {
                         {/* Approve Dialog */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button className="bg-green-600 hover:bg-green-700">
+                            <Button className="bg-green-600 hover:bg-green-700 hover:translate-y-px text-white cursor-pointer">
                               Approve
                             </Button>
                           </AlertDialogTrigger>
@@ -281,8 +300,8 @@ export default function LeaveRequest() {
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction className="bg-green-600 hover:bg-green-700 text-white">
+                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-green-600 hover:bg-green-700 hover:translate-y-px text-white cursor-pointer">
                                 Approve
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -291,7 +310,7 @@ export default function LeaveRequest() {
                       </>
                     )}
 
-                    <Button variant="outline">View Details</Button>
+                    <Button variant="outline" className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">View Details</Button>
                   </div>
                 </div>
               </CardContent>

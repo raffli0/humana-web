@@ -170,7 +170,7 @@ export default function Dashboard() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-7 rounded-full border-gray-300 text-gray-700">
+                                    className="h-7 rounded-full border-gray-300 text-gray-700 cursor-pointer hover:translate-y-px hover:bg-slate-200">
                                     2023
                                     <ChevronDown className="ml-1 h-3 w-3" />
                                 </Button>
@@ -298,7 +298,7 @@ export default function Dashboard() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-7 px-2 text-[11px] text-gray-500"
+                                        className="h-7 px-2 text-[11px] text-indigo-600 cursor-pointer hover:text-indigo-800"
                                     >
                                         View all
                                     </Button>
@@ -374,7 +374,7 @@ export default function Dashboard() {
                                         <span className="text-gray-700">lorem</span>
                                         <span className="text-gray-900">$1,200</span>
                                         <span className="text-emerald-600">Paid</span>
-                                        <div className="text-right text-[11px] text-indigo-600 cursor-pointer">
+                                        <div className="text-right text-[11px] text-indigo-600 cursor-pointer hover:text-indigo-800">
                                             View detail
                                         </div>
                                     </div>

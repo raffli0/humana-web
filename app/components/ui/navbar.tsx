@@ -63,7 +63,7 @@ export default function Navbar() {
 
         {/* Profile */}
         <div className="hidden md:flex items-center gap-3">
-          <button className="flex items-center gap-2 rounded-full bg-slate-900/70 px-2 py-1 ring-1 ring-slate-800 hover:ring-slate-700 transition">
+          <button className="flex items-center gap-2 rounded-full bg-slate-900/70 px-2 py-1 ring-1 ring-slate-800 hover:ring-slate-700 transition cursor-pointer">
             <Avatar className="h-8 w-8">
               <AvatarImage src="https://avatars.githubusercontent.com/u/1" />
               <AvatarFallback>PR</AvatarFallback>

@@ -31,7 +31,15 @@ export default function Recruitment() {
                     <h2 className="text-2xl font-semibold tracking-tight">Recruitment</h2>
                     <p className="mt-1 text-sm text-gray-600">Manage job postings and applications</p>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                    className="
+                    bg-blue-600 
+                    hover:bg-blue-700
+                    text-white
+                    cursor-pointer
+                    transition-all duration-150
+                    hover:-translate-y-px
+                    active:translate-y-0">
                     <Plus className="w-4 h-4 mr-2" />
                     Post New Job
                 </Button>
@@ -92,7 +100,15 @@ export default function Recruitment() {
                                 placeholder="Search job positions..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
+                                className="
+                                pl-10
+                                border-slate-300
+                                shadow-sm
+                                transition-all duration-200 ease-out
+                                focus-visible:outline-none
+                                focus-visible:border-slate-500
+                                focus-visible:ring-2
+                                focus-visible:ring-slate-500/20"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -101,7 +117,8 @@ export default function Recruitment() {
                                     key={status}
                                     variant={filterStatus === status ? "default" : "outline"}
                                     onClick={() => setFilterStatus(status)}
-                                    className={filterStatus === status ? "bg-blue-600" : ""}
+                                    className={filterStatus === status ? "bg-blue-600 text-white border-blue-600 shadow-none cursor-pointer"
+                                        : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"}
                                 >
                                     {status}
                                 </Button>
@@ -151,9 +168,12 @@ export default function Recruitment() {
                                         <p className="text-gray-900">{job.applicants}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="outline">View Details</Button>
+                                        <Button
+                                            variant="outline"
+                                            className="cursor-pointer hover:bg-slate-100 hover:translate-y-px"
+                                            >View Details</Button>
                                         {job.status === "Open" && (
-                                            <Button className="bg-blue-600 hover:bg-blue-700">
+                                            <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:translate-y-px">
                                                 View Applicants
                                             </Button>
                                         )}
