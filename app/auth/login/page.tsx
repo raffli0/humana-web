@@ -50,7 +50,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center text-sm text-slate-600">
           Don’t have an account?{" "}
           <Link
-            href="/register"
+            href="/auth/register"
             className="font-medium text-blue-600 hover:underline"
           >
             Create one

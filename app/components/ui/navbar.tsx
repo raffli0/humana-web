@@ -4,10 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "../ui/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { ChevronDown, Icon, Menu, X } from "lucide-react";
 
 import * as Tooltip from "@radix-ui/react-tooltip";
+
 import { ProfileDropdown } from "./profile-dropdown";
 
 import {
