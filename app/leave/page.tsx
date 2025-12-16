@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { Search, Plus, Calendar, FileText, Filter } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
@@ -20,18 +20,18 @@ import {
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
 
-
-
 export default function LeaveRequest() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
   const statuses = ["All", "Pending", "Approved", "Rejected"];
 
-  const filteredRequests = leaveRequests.filter(request => {
-    const matchesSearch = request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredRequests = leaveRequests.filter((request) => {
+    const matchesSearch =
+      request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.type.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === "All" || request.status === filterStatus;
+    const matchesStatus =
+      filterStatus === "All" || request.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -61,8 +61,12 @@ export default function LeaveRequest() {
     }
   };
 
-  const pendingCount = leaveRequests.filter(r => r.status === "Pending").length;
-  const approvedCount = leaveRequests.filter(r => r.status === "Approved").length;
+  const pendingCount = leaveRequests.filter(
+    (r) => r.status === "Pending"
+  ).length;
+  const approvedCount = leaveRequests.filter(
+    (r) => r.status === "Approved"
+  ).length;
 
   const getEmployee = (id: string) => {
     return employees.find((e) => e.id === id);
@@ -72,19 +76,24 @@ export default function LeaveRequest() {
     <main className="min-h-screen overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Leave Requests</h2>
-          <p className="mt-1 text-sm text-gray-600">Manage employee leave applications</p>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Leave Management
+          </h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage employee leave requests
+          </p>
         </div>
-        <Button 
+        <Button
           className="
-          bg-blue-600 
-          hover:bg-blue-700
+          bg-blue-900 
+          hover:bg-blue-800
           text-white
           cursor-pointer
           transition-all duration-150
           hover:-translate-y-px
           active:translate-y-0
-          ">
+          "
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Request
         </Button>
@@ -140,7 +149,7 @@ export default function LeaveRequest() {
               <div>
                 <p className="text-gray-600">Rejected</p>
                 <p className="text-gray-900 mt-1">
-                  {leaveRequests.filter(r => r.status === "Rejected").length}
+                  {leaveRequests.filter((r) => r.status === "Rejected").length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
@@ -170,39 +179,44 @@ export default function LeaveRequest() {
                 focus-visible:border-slate-500
                 focus-visible:ring-2
                 focus-visible:ring-slate-500/20
+                bg-[#f7f8fa]
                 "
               />
             </div>
             <div className="flex gap-2 flex-wrap">
-              {statuses.map(status => (
+              {statuses.map((status) => (
                 <Button
                   key={status}
                   variant={filterStatus === status ? "default" : "outline"}
                   onClick={() => setFilterStatus(status)}
-                  className={filterStatus === status ? "bg-blue-600 text-white border-blue-600 shadow-none cursor-pointer"
-                    : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"}
+                  className={
+                    filterStatus === status
+                      ? "bg-blue-900 text-white border-blue-600 shadow-none cursor-pointer"
+                      : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"
+                  }
                 >
                   {status}
                 </Button>
               ))}
+              ;
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Leave Requests List */}
-      {/* Leave Requests List */}
       <div className="space-y-4">
         {filteredRequests.map((request) => {
           const employee = getEmployee(request.employeeId);
 
           return (
-            <Card key={request.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={request.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-
                   <div className="flex items-start gap-4">
-
                     {/* FIXED AVATAR */}
                     <Avatar className="h-12 w-12 rounded-full bg-gray-200 overflow-hidden">
                       <AvatarImage
@@ -224,7 +238,9 @@ export default function LeaveRequest() {
                     {/* Request info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <h3 className="text-gray-900">{request.employeeName}</h3>
+                        <h3 className="text-gray-900">
+                          {request.employeeName}
+                        </h3>
 
                         <Badge className={getStatusColor(request.status)}>
                           {request.status}
@@ -268,14 +284,19 @@ export default function LeaveRequest() {
 
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Reject this request?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Reject this request?
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. The employee will be notified.
+                                This action cannot be undone. The employee will
+                                be notified.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">
+                                Cancel
+                              </AlertDialogCancel>
                               <AlertDialogAction className="bg-red-600 hover:bg-red-700 hover:translate-y-px text-white cursor-pointer">
                                 Reject
                               </AlertDialogAction>
@@ -293,14 +314,18 @@ export default function LeaveRequest() {
 
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Approve this request?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Approve this request?
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
                                 This will mark the request as approved.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">
+                                Cancel
+                              </AlertDialogCancel>
                               <AlertDialogAction className="bg-green-600 hover:bg-green-700 hover:translate-y-px text-white cursor-pointer">
                                 Approve
                               </AlertDialogAction>
@@ -310,7 +335,12 @@ export default function LeaveRequest() {
                       </>
                     )}
 
-                    <Button variant="outline" className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">View Details</Button>
+                    <Button
+                      variant="outline"
+                      className="cursor-pointer hover:bg-slate-100 hover:translate-y-px"
+                    >
+                      View Details
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -319,11 +349,12 @@ export default function LeaveRequest() {
         })}
       </div>
 
-
       {filteredRequests.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-gray-600">No leave requests found matching your criteria</p>
+            <p className="text-gray-600">
+              No leave requests found matching your criteria
+            </p>
           </CardContent>
         </Card>
       )}

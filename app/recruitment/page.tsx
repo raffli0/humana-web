@@ -33,8 +33,8 @@ export default function Recruitment() {
                 </div>
                 <Button
                     className="
-                    bg-blue-600 
-                    hover:bg-blue-700
+                    bg-blue-900 
+                    hover:bg-blue-800
                     text-white
                     cursor-pointer
                     transition-all duration-150
@@ -108,7 +108,8 @@ export default function Recruitment() {
                                 focus-visible:outline-none
                                 focus-visible:border-slate-500
                                 focus-visible:ring-2
-                                focus-visible:ring-slate-500/20"
+                                focus-visible:ring-slate-500/20
+                                bg-[#f7f8fa]"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -117,7 +118,7 @@ export default function Recruitment() {
                                     key={status}
                                     variant={filterStatus === status ? "default" : "outline"}
                                     onClick={() => setFilterStatus(status)}
-                                    className={filterStatus === status ? "bg-blue-600 text-white border-blue-600 shadow-none cursor-pointer"
+                                    className={filterStatus === status ? "bg-blue-800 text-white border-blue-600 shadow-none cursor-pointer"
                                         : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"}
                                 >
                                     {status}
@@ -173,7 +174,7 @@ export default function Recruitment() {
                                             className="cursor-pointer hover:bg-slate-100 hover:translate-y-px"
                                             >View Details</Button>
                                         {job.status === "Open" && (
-                                            <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:translate-y-px">
+                                            <Button className="bg-blue-800 hover:bg-blue-700 text-white cursor-pointer hover:translate-y-px">
                                                 View Applicants
                                             </Button>
                                         )}
