@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Calendar, FileText, Filter } from "lucide-react";
-import { Card, CardContent } from "../components/ui/card";
+import { Search, Plus, FileText, Check, X, Clock, Eye } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { leaveRequests, employees } from "../utils/mockData";
-import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -19,6 +19,22 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
 
 export default function LeaveRequest() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,326 +54,272 @@ export default function LeaveRequest() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
-        return "bg-green-100 text-green-700";
+        return "bg-green-100 text-green-700 hover:bg-green-200 border-green-200";
       case "Pending":
-        return "bg-orange-100 text-orange-700";
+        return "bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200";
       case "Rejected":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 text-red-700 hover:bg-red-200 border-red-200";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-gray-700 hover:bg-gray-200";
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "Annual Leave":
-        return "bg-blue-100 text-blue-700";
-      case "Sick Leave":
-        return "bg-purple-100 text-purple-700";
-      case "Personal Leave":
-        return "bg-pink-100 text-pink-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const pendingCount = leaveRequests.filter(
-    (r) => r.status === "Pending"
-  ).length;
-  const approvedCount = leaveRequests.filter(
-    (r) => r.status === "Approved"
-  ).length;
+  const pendingCount = leaveRequests.filter((r) => r.status === "Pending").length;
+  const approvedCount = leaveRequests.filter((r) => r.status === "Approved").length;
+  const rejectedCount = leaveRequests.filter((r) => r.status === "Rejected").length;
 
   const getEmployee = (id: string) => {
     return employees.find((e) => e.id === id);
   };
 
   return (
-    <main className="min-h-screen overflow-y-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Leave Management
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage employee leave requests
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Leave Management</h1>
+          <p className="text-muted-foreground mt-1">Review and manage employee leave requests.</p>
         </div>
-        <Button
-          className="
-          bg-blue-900 
-          hover:bg-blue-800
-          text-white
-          cursor-pointer
-          transition-all duration-150
-          hover:-translate-y-px
-          active:translate-y-0
-          "
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Request
+        <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2 shadow-sm">
+          <Plus className="w-4 h-4" /> New Request
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600">Total Requests</p>
-                <p className="text-gray-900 mt-1">{leaveRequests.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{leaveRequests.length}</p>
+            </div>
+            <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+              <FileText className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600">Pending</p>
-                <p className="text-gray-900 mt-1">{pendingCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-white" />
-              </div>
+        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="text-2xl font-bold text-orange-600 mt-1">{pendingCount}</p>
+            </div>
+            <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
+              <Clock className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600">Approved</p>
-                <p className="text-gray-900 mt-1">{approvedCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
+        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Approved</p>
+              <p className="text-2xl font-bold text-green-600 mt-1">{approvedCount}</p>
+            </div>
+            <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
+              <Check className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600">Rejected</p>
-                <p className="text-gray-900 mt-1">
-                  {leaveRequests.filter((r) => r.status === "Rejected").length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
+        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">{rejectedCount}</p>
+            </div>
+            <div className="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
+              <X className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* Main Content Area */}
+      <Card className="border-none shadow-sm ring-1 ring-gray-200">
+        <CardHeader className="pb-4 border-b border-gray-100 space-y-4 md:space-y-0 md:flex md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Requests</CardTitle>
+            <CardDescription>A list of all leave requests and their status.</CardDescription>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by employee name or leave type..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="
-                pl-10
-                border-slate-300    
-                shadow-sm
-                transition-all duration-200 ease-out
-                focus-visible:outline-none
-                focus-visible:border-slate-500
-                focus-visible:ring-2
-                focus-visible:ring-slate-500/20
-                bg-[#f7f8fa]
-                "
+                className="pl-9 w-full sm:w-[250px] bg-slate-50 border-slate-200"
               />
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               {statuses.map((status) => (
                 <Button
                   key={status}
                   variant={filterStatus === status ? "default" : "outline"}
                   onClick={() => setFilterStatus(status)}
-                  className={
-                    filterStatus === status
-                      ? "bg-blue-900 text-white border-blue-600 shadow-none cursor-pointer"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-100 shadow-none cursor-pointer"
-                  }
+                  size="sm"
+                  className={filterStatus === status ? "bg-slate-900 border-slate-900 text-white" : "text-slate-600 border-slate-200"}
                 >
                   {status}
                 </Button>
               ))}
-              ;
             </div>
           </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead className="w-[300px]">Employee</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Dates</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRequests.map((request) => {
+                const employee = getEmployee(request.employeeId);
+                return (
+                  <TableRow key={request.id} className="hover:bg-slate-50/50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={employee?.avatar} />
+                          <AvatarFallback>{request.employeeName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-gray-900">{request.employeeName}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">{request.reason}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal bg-slate-50">
+                        {request.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {request.days} days
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col text-xs text-gray-500">
+                        <span className="font-medium text-gray-700">{request.startDate}</span>
+                        <span>to {request.endDate}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(request.status)}>
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <span className="sr-only">View Detail</span>
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>Leave Request Details</DialogTitle>
+                              <DialogDescription>
+                                Details for {request.employeeName}&apos;s request.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <span className="text-right font-medium text-muted-foreground">Type</span>
+                                <span className="col-span-3 font-medium">{request.type}</span>
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <span className="text-right font-medium text-muted-foreground">Duration</span>
+                                <span className="col-span-3">{request.days} days ({request.startDate} - {request.endDate})</span>
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <span className="text-right font-medium text-muted-foreground">Reason</span>
+                                <span className="col-span-3 text-sm">{request.reason}</span>
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <span className="text-right font-medium text-muted-foreground">Status</span>
+                                <span className="col-span-3">
+                                  <Badge className={getStatusColor(request.status)}>
+                                    {request.status}
+                                  </Badge>
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <span className="text-right font-medium text-muted-foreground">Requested</span>
+                                <span className="col-span-3 text-sm text-gray-500">{request.requestDate}</span>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        {request.status === "Pending" ? (
+                          <>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800">
+                                  Reject
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Reject Request?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will notify {request.employeeName} that their leave request has been rejected.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction className="bg-red-600 hover:bg-red-700">Reject</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white">
+                                  Approve
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Approve Request</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Approve {request.days} days of {request.type} for {request.employeeName}?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction className="bg-green-600 hover:bg-green-700">Approve</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        ) : (
+                          <Button variant="ghost" size="sm" className="h-8 text-muted-foreground" disabled>
+                            Archived
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filteredRequests.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No requests found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      {/* Leave Requests List */}
-      <div className="space-y-4">
-        {filteredRequests.map((request) => {
-          const employee = getEmployee(request.employeeId);
-
-          return (
-            <Card
-              key={request.id}
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    {/* FIXED AVATAR */}
-                    <Avatar className="h-12 w-12 rounded-full bg-gray-200 overflow-hidden">
-                      <AvatarImage
-                        src={
-                          employee?.avatar ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            request.employeeName
-                          )}`
-                        }
-                      />
-                      <AvatarFallback>
-                        {request.employeeName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {/* Request info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <h3 className="text-gray-900">
-                          {request.employeeName}
-                        </h3>
-
-                        <Badge className={getStatusColor(request.status)}>
-                          {request.status}
-                        </Badge>
-
-                        <Badge className={getTypeColor(request.type)}>
-                          {request.type}
-                        </Badge>
-                      </div>
-
-                      <p className="text-gray-600 mb-2">{request.reason}</p>
-
-                      <div className="flex flex-wrap gap-4 text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {request.startDate} - {request.endDate}
-                          </span>
-                        </div>
-
-                        <span>Duration: {request.days} days</span>
-                        <span>Requested: {request.requestDate}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 flex-shrink-0">
-                    {request.status === "Pending" && (
-                      <>
-                        {/* Reject Dialog */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="text-red-600 hover:bg-red-50 hover:translate-y-px cursor-pointer"
-                            >
-                              Reject
-                            </Button>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Reject this request?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. The employee will
-                                be notified.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction className="bg-red-600 hover:bg-red-700 hover:translate-y-px text-white cursor-pointer">
-                                Reject
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-
-                        {/* Approve Dialog */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button className="bg-green-600 hover:bg-green-700 hover:translate-y-px text-white cursor-pointer">
-                              Approve
-                            </Button>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Approve this request?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will mark the request as approved.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer hover:bg-slate-100 hover:translate-y-px">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction className="bg-green-600 hover:bg-green-700 hover:translate-y-px text-white cursor-pointer">
-                                Approve
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
-
-                    <Button
-                      variant="outline"
-                      className="cursor-pointer hover:bg-slate-100 hover:translate-y-px"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {filteredRequests.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-gray-600">
-              No leave requests found matching your criteria
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </main>
   );
 }

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { MapPin } from "lucide-react";
 
-interface AttendanceRecord {
+export interface AttendanceRecord {
   id: string;
   employeeId: string;
   employeeName: string;
@@ -23,69 +23,12 @@ interface AttendanceMapProps {
 }
 
 export default function AttendanceMap({ attendance, selectedAttendance, onSelectAttendance }: AttendanceMapProps) {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
-  useEffect(() => {
-    // Load Leaflet CSS and JS dynamically
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css';
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-
-    const loadLeaflet = async () => {
-      if (!(window as any).L) {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.async = true;
-        document.body.appendChild(script);
-        
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
-      }
-
-      initMap();
-    };
-
-    loadLeaflet();
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (mapInstanceRef.current) {
-      updateMarkers();
-    }
-  }, [attendance, selectedAttendance]);
-
-  const initMap = () => {
-    if (!mapRef.current || mapInstanceRef.current) return;
-
-    const L = (window as any).L;
-    if (!L) return;
-
-    // Initialize map centered on Jakarta
-    const map = L.map(mapRef.current).setView([-6.2088, 106.8456], 12);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    mapInstanceRef.current = map;
-    updateMarkers();
-  };
-
-  const updateMarkers = () => {
+  const updateMarkers = useCallback(() => {
     if (!mapInstanceRef.current) return;
 
     const L = (window as any).L;
@@ -97,23 +40,22 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
 
     // Add new markers
     const validAttendance = attendance.filter(a => a.location);
-    
+
     if (validAttendance.length === 0) return;
 
     validAttendance.forEach(record => {
       if (!record.location) return;
 
       const isSelected = selectedAttendance?.id === record.id;
-      
+
       const icon = L.divIcon({
         className: 'custom-marker',
         html: `
           <div style="
-            background-color: ${
-              record.status === 'Present' ? '#10b981' :
-              record.status === 'Late' ? '#f59e0b' :
+            background-color: ${record.status === 'Present' ? '#10b981' :
+            record.status === 'Late' ? '#f59e0b' :
               '#ef4444'
-            };
+          };
             width: ${isSelected ? '40px' : '30px'};
             height: ${isSelected ? '40px' : '30px'};
             border-radius: 50%;
@@ -159,7 +101,65 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
       );
       mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
-  };
+  }, [attendance, selectedAttendance, onSelectAttendance]); // Added dependencies
+
+  const initMap = useCallback(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    // Initialize map centered on Jakarta
+    const map = L.map(mapRef.current).setView([-6.2088, 106.8456], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+    updateMarkers();
+  }, [updateMarkers]); // Added updateMarkers as dependency
+
+  useEffect(() => {
+    // Load Leaflet CSS and JS dynamically
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    const loadLeaflet = async () => {
+      if (!(window as any).L) {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+
+      initMap();
+    };
+
+    loadLeaflet();
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [initMap]); // Added initMap as dependency
+
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      updateMarkers();
+    }
+  }, [updateMarkers]); // Dependency changed to updateMarkers
 
   return (
     <div className="relative">

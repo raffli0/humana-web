@@ -2,14 +2,18 @@
 
 import {
   Users,
-  ClipboardCheck,
   Briefcase,
   FileText,
   TrendingUp,
-  TrendingDown,
+  Activity,
+  CreditCard,
+  Calendar as CalendarIcon,
+  Search,
+  Bell,
   ChevronDown,
-  Divide,
+  LucideIcon
 } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -17,35 +21,37 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { Badge } from "../components/ui/badge";
+import { Progress } from "../components/ui/progress";
+import { Separator } from "../components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+
 import {
   employees,
   attendance,
   leaveRequests,
   recruitments,
 } from "../utils/mockData";
-import { Button } from "../components/ui/button";
 
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  AreaChart,
+  Area,
 } from "recharts";
-
-import { Progress } from "../components/ui/progress";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-import { Badge } from "../components/ui/badge";
-import { AvatarFallback } from "../components/ui/avatar";
-import { Separator } from "../components/ui/separator";
-
-const employeeBreakdown = [
-  { label: "Others", value: 71, color: "#EAB308" }, // yellow
-  { label: "Onboarding", value: 27, color: "#22C55E" }, // green
-  { label: "Offboarding", value: 23, color: "#6366F1" }, // indigo
-];
 
 const payrollData = [
   { month: "Jan", gross: 26000, tax: 4000, net: 22000 },
@@ -58,35 +64,11 @@ const payrollData = [
   { month: "Aug", gross: 53000, tax: 8600, net: 44400 },
 ];
 
-const paymentStatus = {
-  totalEmployees: 121,
-  paid: 68,
-  pending: 17,
-  unpaid: 15,
-};
-
-const latestPayments = [
-  {
-    name: "Amanda Sisy",
-    role: "Project Manager",
-    status: "PAID",
-    amount: "$3,450",
-    date: "11 Aug 2023",
-  },
-  {
-    name: "Cooper Culhane",
-    role: "UX Engineer",
-    status: "PENDING",
-    amount: "$2,320",
-    date: "11 Aug 2023",
-  },
-  {
-    name: "Gretchen Konter",
-    role: "Lead UX Designer",
-    status: "PAID",
-    amount: "$3,870",
-    date: "10 Aug 2023",
-  },
+const departmentStats = [
+  { name: "Engineering", count: 12, total: 20, color: "bg-blue-500" },
+  { name: "Marketing", count: 8, total: 15, color: "bg-purple-500" },
+  { name: "HR", count: 3, total: 5, color: "bg-pink-500" },
+  { name: "Sales", count: 15, total: 25, color: "bg-emerald-500" },
 ];
 
 export default function Dashboard() {
@@ -99,476 +81,286 @@ export default function Dashboard() {
     (lr) => lr.status === "Pending"
   ).length;
   const openPositions = recruitments.filter((r) => r.status === "Open").length;
-  const donutTotal = employeeBreakdown.reduce((acc, cur) => acc + cur.value, 0);
-
-  const stats = [
-    {
-      title: "Total Employees",
-      value: employees.length,
-      icon: Users,
-      change: "+2",
-      changeType: "increase",
-      color: "bg-blue-500",
-    },
-    {
-      title: "Present Today",
-      value: presentToday,
-      icon: ClipboardCheck,
-      change: `${((presentToday / employees.length) * 100).toFixed(0)}%`,
-      changeType: "increase",
-      color: "bg-green-500",
-    },
-    {
-      title: "Pending Leaves",
-      value: pendingLeaves,
-      icon: FileText,
-      change: "+3",
-      changeType: "neutral",
-      color: "bg-orange-500",
-    },
-    {
-      title: "Open Positions",
-      value: openPositions,
-      icon: Briefcase,
-      change: "-1",
-      changeType: "decrease",
-      color: "bg-purple-500",
-    },
-  ];
-
-  const recentLeaves = leaveRequests.slice(0, 5);
-  const departmentStats = [
-    { name: "Engineering", count: 2, color: "bg-blue-500" },
-    { name: "Marketing", count: 1, color: "bg-green-500" },
-    { name: "HR", count: 1, color: "bg-orange-500" },
-    { name: "Sales", count: 1, color: "bg-purple-500" },
-    { name: "Finance", count: 1, color: "bg-pink-500" },
-  ];
 
   return (
-    <main className="min-h-screen overflow-y-auto p-6 space-y-6 bg-white text-gray-900">
-      {/* greeting */}
-      <section className="">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome back, Pristia!
-        </h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Here is your company&apos;s payroll and employee overview for this
-          month.
-        </p>
-      </section>
-
-      {/* Main grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-        {/* Payroll section */}
-        <Card className="p-6 space-y-1 bg-[#f5f5f5] border border-gray-200 shadow-sm rounded-xl">
-          {/* Header payroll */}
-          <div>
-            <h2 className="text-sb font-semibold tracking-tight text-gray-900">
-              Payroll
-            </h2>
-            <p className="mt-1 text-xs text-gray-600">
-              This is your payroll summary report so far.
-            </p>
-          </div>
-
-          {/* Payroll  */}
-          <div className="space-y-6">
-            <Card className="bg-white p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Payroll Summary</p>
-                    <p className="text-lg font-semibold">$52,800</p>
-                    <span className="text-xs text-green-600">+8.2%</span>
-                  </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">Total Payroll</p>
-                  <p className="text-lg font-semibold">$4,400</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">Avg Salary</p>
-                  <p className="text-lg font-semibold text-red-600">+5.7%</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">Payroll Growth</p>
-                  <p className="text-lg font-semibold text-green-600">+8.2%</p>
-                  <span className="text-[11px] text-gray-400">since July</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* grid left */}
-            {/* Nested card: Payroll Summary Chart */}
-            <Card className="bg-white border border-gray-200 shadow-sm rounded-lg">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle className="text-sm text-gray-900">
-                    Payroll Summary
-                  </CardTitle>
-                  <CardDescription className="text-xs text-gray-500">
-                    Gross salary, taxes and net salary overview
-                  </CardDescription>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 rounded-full border-gray-300 text-gray-700 cursor-pointer hover:translate-y-px hover:bg-slate-200"
-                >
-                  2023
-                  <ChevronDown className="ml-1 h-3 w-3" />
-                </Button>
-              </CardHeader>
-
-              <CardContent className="h-60 pt-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={payrollData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="month"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11, fill: "#6b7280" }}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11, fill: "#6b7280" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#ffffff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                        fontSize: 11,
-                        color: "#111827",
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="gross"
-                      stroke="#6366F1"
-                      strokeWidth={2.5}
-                      dot={{ r: 3 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="net"
-                      stroke="#F97316"
-                      strokeWidth={2.5}
-                      dot={{ r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Payment Status */}
-            <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-900">
-                  Payment Status
-                </CardTitle>
-                <CardDescription className="text-xs text-gray-600">
-                  {paymentStatus.totalEmployees} employees
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-3">
-                {/* Paid */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Successfully Paid</span>
-                  <span className="font-medium text-gray-900">
-                    {paymentStatus.paid}%
-                  </span>
-                </div>
-                <Progress value={paymentStatus.paid} className="h-1.5" />
-                {/* Pending */}
-                <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Pending</span>
-                  <span className="font-medium text-gray-900">
-                    {paymentStatus.pending}%
-                  </span>
-                </div>
-                <Progress value={paymentStatus.pending} className="h-1.5" />
-                {/* Unpaid */}
-                <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Unpaid</span>
-                  <span className="font-medium text-gray-900">
-                    {paymentStatus.unpaid}%
-                  </span>
-                </div>
-                <Progress value={paymentStatus.unpaid} className="h-1.5" />
-              </CardContent>
-            </Card>
-          </div>
-        </Card>
-
-        {/* Main grid right */}
-        <div className="space-y-6">
-          <Card className="p-6 space-y-1 bg-[#f5f5f5] border border-gray-200 shadow-sm rounded-xl">
-            {/* Header Overview */}
-            <div>
-              <h2 className="text-sm font-semibold tracking-tight text-gray-900">
-                Overview
-              </h2>
-              <p className="mt-1 text-xs text-gray-600">
-                It's all about employee.
-              </p>
-            </div>
-
-            {/* grid 2 kolom */}
-            <div className="space-y-6">
-              {/* Latest Payment */}
-              <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div>
-                    <CardTitle className="text-sm text-gray-900">
-                      Latest Payment
-                    </CardTitle>
-                    <CardDescription className="text-xs text-gray-600">
-                      Recent salary disbursement
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-[11px] text-indigo-600 cursor-pointer hover:text-indigo-800"
-                  >
-                    View all
-                  </Button>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  {latestPayments.map((p) => (
-                    <div
-                      key={p.name}
-                      className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="" />
-                          <AvatarFallback>
-                            {p.name
-                              .split(" ")
-                              .map((x) => x[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-semibold text-gray-900">
-                            {p.name}
-                          </span>
-                          <span className="text-[11px] text-gray-500">
-                            {p.role}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs font-semibold text-gray-900">
-                          {p.amount}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`border-0 px-1.5 py-0 text-[10px] ${
-                              p.status === "PAID"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-orange-100 text-orange-700"
-                            }`}
-                          >
-                            {p.status}
-                          </Badge>
-                          <span className="text-[10px] text-gray-500">
-                            {p.date}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Payment report footer (optional simple row) */}
-              <Card className="border border-gray-200 bg-white shadow-sm rounded-lg">
-                <CardHeader className="pb-1">
-                  <CardTitle className="text-sm text-gray-900">
-                    Payment Report
-                  </CardTitle>
-                  <CardDescription className="text-xs text-gray-600">
-                    11 Jan – 4 Apr 2023
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-4 text-[11px] text-gray-500">
-                    <span>Type</span>
-                    <span>Amount</span>
-                    <span>Status</span>
-                    <span className="text-right">Action</span>
-                  </div>
-
-                  <Separator className="my-2 bg-gray-200" />
-
-                  <div className="grid grid-cols-4 items-center text-xs">
-                    <span className="text-gray-700">lorem</span>
-                    <span className="text-gray-900">$1,200</span>
-                    <span className="text-emerald-600">Paid</span>
-                    <div className="text-right text-[11px] text-indigo-600 cursor-pointer hover:text-indigo-800">
-                      View detail
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </Card>
+    <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
+      {/* Top Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Hello, Pristia!</h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome back, here&apos;s your company overview.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" className="rounded-full">
+            <Search className="h-4 w-4 text-gray-500" />
+          </Button>
+          <Button variant="outline" size="icon" className="rounded-full relative">
+            <Bell className="h-4 w-4 text-gray-500" />
+            <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
+          </Button>
+          <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+            <CalendarIcon className="mr-2 h-4 w-4" /> Download Report
+          </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card className="border-gray-200 shadow-sm" key={stat.title}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600">{stat.title}</p>
-                    <p className="text-gray-900 mt-2">{stat.value}</p>
-                    <div className="flex items-center gap-1 mt-2">
-                      {stat.changeType === "increase" ? (
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                      ) : stat.changeType === "decrease" ? (
-                        <TrendingDown className="w-4 h-4 text-red-600" />
-                      ) : null}
-                      <span
-                        className={`${
-                          stat.changeType === "increase"
-                            ? "text-green-600"
-                            : stat.changeType === "decrease"
-                            ? "text-red-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {stat.change}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}
-                  >
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total Employees"
+          value={employees.length.toString()}
+          change="+12% from last month"
+          icon={Users}
+          trend="up"
+        />
+        <StatsCard
+          title="Present Today"
+          value={presentToday.toString()}
+          change={`${((presentToday / employees.length) * 100).toFixed(0)}% attendance rate`}
+          icon={Activity}
+          trend="neutral"
+        />
+        <StatsCard
+          title="Pending Leaves"
+          value={pendingLeaves.toString()}
+          change="3 requests waiting"
+          icon={FileText}
+          trend="down"
+        />
+        <StatsCard
+          title="Open Positions"
+          value={openPositions.toString()}
+          change="Hiring is active"
+          icon={Briefcase}
+          trend="up"
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Leave Requests */}
-        <Card className="border-gray-200 shadow-sm">
-          <CardHeader>
-            <CardTitle>Recent Leave Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentLeaves.map((leave) => (
-                <div
-                  key={leave.id}
-                  className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                    <div>
-                      <p className="text-gray-900">{leave.employeeName}</p>
-                      <p className="text-gray-600">
-                        {leave.type} - {leave.days} days
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-full ${
-                      leave.status === "Approved"
-                        ? "bg-green-100 text-green-700"
-                        : leave.status === "Pending"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {leave.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Left Column (Charts & Tables) */}
+        <div className="xl:col-span-2 space-y-8">
 
-        {/* Department Distribution */}
-        <Card className="border-gray-200 shadow-sm">
-          <CardHeader>
-            <CardTitle>Department Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          {/* Payroll Chart */}
+          <Card className="border-none shadow-sm ring-1 ring-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">Payroll Analytics</CardTitle>
+                <CardDescription>Monthly gross vs net salary distribution</CardDescription>
+              </div>
+              <Tabs defaultValue="year" className="w-[200px]">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="month">Month</TabsTrigger>
+                  <TabsTrigger value="year">Year</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+            <CardContent className="h-[350px] pl-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={payrollData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#6B7280", fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#6B7280", fontSize: 12 }}
+                    tickFormatter={(value) => `$${value / 1000}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                  />
+                  <Area type="monotone" dataKey="gross" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorGross)" />
+                  <Area type="monotone" dataKey="net" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Recent Leave Requests */}
+          <Card className="border-none shadow-sm ring-1 ring-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Recent Leave Requests</CardTitle>
+                <CardDescription>Review and manage employee time off</CardDescription>
+              </div>
+              <Button variant="ghost" className="text-sm font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer" onClick={() => { }}>
+                View All
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Dates</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leaveRequests.slice(0, 5).map((leave) => (
+                    <TableRow key={leave.id} className="hover:bg-slate-50/50">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-indigo-100 text-indigo-700">
+                              {leave.employeeName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          {leave.employeeName}
+                        </div>
+                      </TableCell>
+                      <TableCell>{leave.type}</TableCell>
+                      <TableCell className="text-muted-foreground">{leave.startDate}</TableCell>
+                      <TableCell>{leave.days} days</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={`${leave.status === "Approved"
+                            ? "bg-green-100 text-green-700 hover:bg-green-100"
+                            : leave.status === "Pending"
+                              ? "bg-amber-100 text-amber-700 hover:bg-amber-100"
+                              : "bg-red-100 text-red-700 hover:bg-red-100"
+                            }`}
+                        >
+                          {leave.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <span className="sr-only">More</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+        </div>
+
+        {/* Right Column (Side Widgets) */}
+        <div className="space-y-8">
+
+          {/* Department Distribution */}
+          <Card className="border-none shadow-sm ring-1 ring-gray-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Department Capacity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {departmentStats.map((dept) => (
-                <div key={dept.name}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-700">{dept.name}</span>
-                    <span className="text-gray-900">{dept.count}</span>
+                <div key={dept.name} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700">{dept.name}</span>
+                    <span className="text-muted-foreground">{dept.count}/{dept.total}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`${dept.color} h-2 rounded-full`}
-                      style={{
-                        width: `${(dept.count / employees.length) * 100}%`,
-                      }}
-                    />
+                  <Progress value={(dept.count / dept.total) * 100} className="h-2" indicatorClassName={dept.color} />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Payment Status */}
+          <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <CreditCard className="h-5 w-5 opacity-80" />
+                Payment Status
+              </CardTitle>
+              <CardDescription className="text-indigo-100">
+                Next payroll disbursement
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mt-4">
+                <div className="text-3xl font-bold">$124,500</div>
+                <div className="text-indigo-100 text-sm mt-1">Scheduled for Oct 25, 2023</div>
+              </div>
+              <Separator className="my-6 bg-white/20" />
+              <div className="flex justify-between items-center text-sm">
+                <span>Processing</span>
+                <span className="font-semibold">68%</span>
+              </div>
+              <Progress value={68} className="h-1.5 mt-2 bg-indigo-900/30" indicatorClassName="bg-white" />
+            </CardContent>
+          </Card>
+
+          {/* Activity / Notifications Generic */}
+          <Card className="border-none shadow-sm ring-1 ring-gray-200">
+            <CardHeader>
+              <CardTitle className="text-lg">Today&apos;s Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-4 items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                  <div className="h-2 w-2 mt-2 rounded-full bg-indigo-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">New employee onboarding</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Sarah Johnson joined the Design team</p>
+                    <p className="text-[10px] text-gray-400 mt-2">2 hours ago</p>
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Attendance Overview */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader>
-          <CardTitle>Today's Attendance Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-green-700">Present</p>
-              <p className="text-green-900 mt-1">
-                {todayAttendance.filter((a) => a.status === "Present").length}
-              </p>
-            </div>
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <p className="text-orange-700">Late</p>
-              <p className="text-orange-900 mt-1">
-                {todayAttendance.filter((a) => a.status === "Late").length}
-              </p>
-            </div>
-            <div className="p-4 bg-red-50 rounded-lg">
-              <p className="text-red-700">Absent</p>
-              <p className="text-red-900 mt-1">
-                {todayAttendance.filter((a) => a.status === "Absent").length}
-              </p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-blue-700">On Leave</p>
-              <p className="text-blue-900 mt-1">0</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
+  );
+}
+
+interface StatsCardProps {
+  title: string;
+  value: string;
+  change: string;
+  icon: LucideIcon;
+  trend: "up" | "down" | "neutral";
+}
+
+function StatsCard({ title, value, change, icon: Icon, trend }: StatsCardProps) {
+  return (
+    <Card className="border-none shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center gap-1 mt-1 text-xs">
+          {trend === "up" && <TrendingUp className="h-3 w-3 text-green-600" />}
+          {trend === "down" && <TrendingUp className="h-3 w-3 text-red-600 rotate-180" />}
+          <span className={trend === "up" ? "text-green-600 font-medium" : trend === "down" ? "text-red-600 font-medium" : "text-muted-foreground"}>
+            {change}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,30 +1,48 @@
 "use client"
 
 import { useState } from "react";
-import { MapPin, Calendar, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { MapPin, Clock, Search, Download, Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
+import { Input } from "../components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 import { attendance, employees } from "../utils/mockData";
-import AttendanceMap from "../attendance/AttendanceMap";
-import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
-
+import AttendanceMap, { AttendanceRecord } from "../attendance/AttendanceMap";
+import { cn } from "@/lib/utils";
 
 export default function Attendance() {
-  const [selectedDate, setSelectedDate] = useState("2024-11-24");
-  const [selectedAttendance, setSelectedAttendance] = useState(attendance[0]);
+  const [date, setDate] = useState<Date | undefined>(new Date(2024, 10, 24)); // Nov 24, 2024
+  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(attendance[0] as unknown as AttendanceRecord);
 
-  const filteredAttendance = attendance.filter(a => a.date === selectedDate);
+  const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+  const filteredAttendance = attendance.filter(a => a.date === formattedDate);
 
-  const getStatusColor = (status: string) => {
+  const stats = {
+    present: filteredAttendance.filter(a => a.status === "Present").length,
+    late: filteredAttendance.filter(a => a.status === "Late").length,
+    absent: filteredAttendance.filter(a => a.status === "Absent").length,
+    total: filteredAttendance.length
+  };
+
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "Present":
-        return "bg-green-100 text-green-700";
+        return { color: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: CheckCircle2 };
       case "Late":
-        return "bg-orange-100 text-orange-700";
+        return { color: "text-amber-700 bg-amber-50 border-amber-200", icon: AlertCircle };
       case "Absent":
-        return "bg-red-100 text-red-700";
+        return { color: "text-rose-700 bg-rose-50 border-rose-200", icon: XCircle };
       default:
-        return "bg-gray-100 text-gray-700";
+        return { color: "text-slate-700 bg-slate-50 border-slate-200", icon: AlertCircle };
     }
   };
 
@@ -33,167 +51,258 @@ export default function Attendance() {
   };
 
   return (
-    <main className="min-h-screen overflow-y-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Attendance</h2>
-          <p className="mt-1 text-sm text-gray-600">Track employee attendance and locations</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Attendance</h1>
+          <p className="text-muted-foreground mt-1">Monitor real-time employee attendance and location.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-600" />
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2"
-          />
+          <DatePicker date={date} setDate={setDate} />
+          <Button variant="outline" size="icon" className="bg-white">
+            <Download className="h-4 w-4 text-gray-500" />
+          </Button>
+          <Button variant="outline" size="icon" className="bg-white">
+            <Settings className="h-4 w-4 text-gray-500" />
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Total Present</span>
+              <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="h-3 w-3 mr-1" /> +4.2%
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-gray-900">{stats.present}</span>
+              <span className="text-sm text-gray-500">/ {stats.total} total</span>
+            </div>
+            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
+              <div
+                className="bg-emerald-500 h-full rounded-full"
+                style={{ width: `${stats.total ? (stats.present / stats.total) * 100 : 0}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Late Arrivals</span>
+              <span className="flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                <ArrowDownRight className="h-3 w-3 mr-1" /> -1.2%
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-gray-900">{stats.late}</span>
+              <span className="text-sm text-gray-500">employees</span>
+            </div>
+            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
+              <div
+                className="bg-amber-500 h-full rounded-full"
+                style={{ width: `${stats.total ? (stats.late / stats.total) * 100 : 0}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Absent</span>
+              <span className="flex items-center text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                <ArrowUpRight className="h-3 w-3 mr-1" /> +2.1%
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-gray-900">{stats.absent}</span>
+              <span className="text-sm text-gray-500">employees</span>
+            </div>
+            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
+              <div
+                className="bg-rose-500 h-full rounded-full"
+                style={{ width: `${stats.total ? (stats.absent / stats.total) * 100 : 0}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-indigo-50/50">
+          <CardContent className="p-5 flex flex-col justify-center h-full">
+            <span className="text-sm font-medium text-indigo-600/70 uppercase tracking-wider">Attendance Rate</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-indigo-700">
+                {stats.total ? Math.round(((stats.present + stats.late) / stats.total) * 100) : 0}%
+              </span>
+            </div>
+            <p className="text-xs text-indigo-600/60 mt-2">Based on checked-in employees today</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-[calc(100vh-18rem)] min-h-[500px]">
         {/* Attendance List */}
-        <div className="space-y-4">
-          <Card>
+        <Card className="xl:col-span-1 border-none shadow-sm ring-1 ring-gray-200 flex flex-col overflow-hidden h-full">
+          <CardHeader className="pb-4 border-b border-gray-100 py-3 px-4 shrink-0 bg-white z-10">
+            <div className="flex items-center justify-between mb-3">
+              <CardTitle className="text-base font-semibold">Employee List</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
+                    All Departments <ChevronDown className="ml-1 h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>Engineering</DropdownMenuItem>
+                  <DropdownMenuItem>Design</DropdownMenuItem>
+                  <DropdownMenuItem>Marketing</DropdownMenuItem>
+                  <DropdownMenuItem>HR</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or ID..."
+                className="pl-9 h-9 text-sm bg-slate-50 border-slate-200"
+              />
+            </div>
+          </CardHeader>
 
-            <CardHeader>
-              <CardTitle>Attendance Records</CardTitle>
-            </CardHeader>
-
-            <CardContent className="space-y-3">
+          <CardContent className="flex-1 overflow-y-auto p-0 bg-white">
+            <div className="divide-y divide-gray-50">
               {filteredAttendance.map((record) => {
                 const employee = getEmployee(record.employeeId);
+                const isSelected = selectedAttendance?.id === record.id;
+                const statusConfig = getStatusConfig(record.status);
+                const StatusIcon = statusConfig.icon;
 
                 return (
                   <div
                     key={record.id}
                     onClick={() => setSelectedAttendance(record)}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAttendance?.id === record.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                      }`}
+                    className={cn(
+                      "p-4 cursor-pointer transition-all hover:bg-slate-50 group border-l-4",
+                      isSelected
+                        ? "bg-indigo-50/40 border-indigo-500"
+                        : "border-transparent"
+                    )}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-
-                        {/* FIXED AVATAR */}
-                        <Avatar className="h-12 w-12 rounded-full overflow-hidden border border-gray-200 bg-gray-50">
-                          <AvatarImage
-                            src={
-                              employee?.avatar ||
-                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                record.employeeName
-                              )}`
-                            }
-                            className="object-cover scale-[0.90]"
-                          />
-                          <AvatarFallback className="text-gray-700 bg-gray-200">
-                            {record.employeeName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10 border border-gray-100 shadow-sm mt-0.5">
+                          <AvatarImage src={employee?.avatar} />
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-100 to-slate-100 text-indigo-700 font-medium text-xs">
+                            {record.employeeName.split(" ").map(n => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
-
-                        {/* Employee Info */}
                         <div>
-                          <p className="text-gray-900 font-medium">
+                          <p className={cn(
+                            "text-sm font-semibold leading-none group-hover:text-indigo-700 transition-colors",
+                            isSelected ? "text-indigo-900" : "text-gray-900"
+                          )}>
                             {record.employeeName}
                           </p>
-                          <p className="text-gray-600 text-sm">
-                            {record.employeeId}
-                          </p>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <Badge variant="secondary" className="text-[10px] font-normal h-4 px-1.5 bg-slate-100 text-slate-500">
+                              {employee?.department || "General"}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-
-                      <Badge className={getStatusColor(record.status)}>
+                      <div className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 shadow-sm", statusConfig.color)}>
+                        <StatusIcon className="h-3 w-3" />
                         {record.status}
-                      </Badge>
-                    </div>
-
-                    {/* Times */}
-                    <div className="grid grid-cols-2 gap-4 mt-3">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-gray-600 text-sm">Check In</p>
-                          <p className="text-gray-900">
-                            {record.checkIn || "-"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-gray-600 text-sm">Check Out</p>
-                          <p className="text-gray-900">
-                            {record.checkOut || "-"}
-                          </p>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Location */}
-                    {record.location && (
-                      <div className="flex items-center gap-2 mt-3 text-gray-600 text-sm">
-                        <MapPin className="w-4 h-4" />
-                        <span>{record.location.address}</span>
+                    <div className="grid grid-cols-2 mt-4 gap-2">
+                      <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+                          <Clock className="w-3 h-3 text-indigo-400" /> Check In
+                        </div>
+                        <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
+                          {record.checkIn || "--:--"}
+                        </div>
                       </div>
-                    )}
+                      <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+                          <Clock className="w-3 h-3 text-orange-400" /> Check Out
+                        </div>
+                        <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
+                          {record.checkOut || "--:--"}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Map View */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Location Map</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AttendanceMap
-                attendance={filteredAttendance}
-                selectedAttendance={selectedAttendance}
-                onSelectAttendance={setSelectedAttendance}
-              />
-            </CardContent>
-          </Card>
+              {filteredAttendance.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-40 text-center p-4">
+                  <div className="bg-slate-50 p-3 rounded-full mb-3">
+                    <Search className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">No records found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Select a different date to view attendance.</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Summary Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-green-700">Present</p>
-                  <p className="text-green-900 mt-1">
-                    {filteredAttendance.filter(a => a.status === "Present").length}
-                  </p>
-                </div>
-                <div className="p-4 bg-orange-50 rounded-lg">
-                  <p className="text-orange-700">Late</p>
-                  <p className="text-orange-900 mt-1">
-                    {filteredAttendance.filter(a => a.status === "Late").length}
-                  </p>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg">
-                  <p className="text-red-700">Absent</p>
-                  <p className="text-red-900 mt-1">
-                    {filteredAttendance.filter(a => a.status === "Absent").length}
-                  </p>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-700">Total</p>
-                  <p className="text-blue-900 mt-1">{filteredAttendance.length}</p>
+        {/* Map Card */}
+        <Card className="xl:col-span-2 border-none shadow-sm ring-1 ring-gray-200 overflow-hidden flex flex-col h-full bg-white">
+          <CardHeader className="py-3 px-4 border-b border-gray-100 bg-white shrink-0 z-10 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="bg-indigo-50 p-1.5 rounded-md">
+                <MapPin className="h-4 w-4 text-indigo-600" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-medium text-gray-900">
+                  {selectedAttendance ? `${selectedAttendance.employeeName}'s Location` : "Employee Locations"}
+                </CardTitle>
+              </div>
+            </div>
+            {selectedAttendance?.location && (
+              <Badge variant="outline" className="text-xs font-normal bg-slate-50">
+                Live Update
+              </Badge>
+            )}
+          </CardHeader>
+          <CardContent className="flex-1 p-0 relative bg-slate-50">
+            <AttendanceMap
+              attendance={filteredAttendance}
+              selectedAttendance={selectedAttendance}
+              onSelectAttendance={setSelectedAttendance}
+            />
+            {selectedAttendance?.location && (
+              <div className="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-gray-200/50 text-sm max-w-[280px] animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-8 w-8 border border-gray-100">
+                    <AvatarImage src={getEmployee(selectedAttendance.employeeId)?.avatar} />
+                    <AvatarFallback>{selectedAttendance.employeeName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-gray-900 line-clamp-1">{selectedAttendance.location.address}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="h-5 text-[10px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-default px-1.5 rounded-md">
+                        Checked In: {selectedAttendance.checkIn}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

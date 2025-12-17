@@ -65,7 +65,7 @@ export const employees = [
     status: "Active",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David"
   },
-    {
+  {
     id: "EMP007",
     name: "Kim Jong Un",
     email: "Kim.jong@humana.com",
@@ -150,7 +150,7 @@ export const leaveRequests = [
     startDate: "2024-12-01",
     endDate: "2024-12-05",
     days: 5,
-    reason: "Family vacation",
+    reason: "Family vacation at Bali",
     status: "Pending",
     requestDate: "2024-11-20"
   },
@@ -162,7 +162,7 @@ export const leaveRequests = [
     startDate: "2024-11-22",
     endDate: "2024-11-22",
     days: 1,
-    reason: "Medical appointment",
+    reason: "Medical appointment (Dental)",
     status: "Approved",
     requestDate: "2024-11-21"
   },
@@ -170,11 +170,11 @@ export const leaveRequests = [
     id: "LR003",
     employeeId: "EMP003",
     employeeName: "Priya Patel",
-    type: "Personal Leave",
+    type: "Maternity Leave",
     startDate: "2024-12-10",
-    endDate: "2024-12-12",
-    days: 3,
-    reason: "Personal matters",
+    endDate: "2025-03-10",
+    days: 90,
+    reason: "Maternity leave",
     status: "Pending",
     requestDate: "2024-11-23"
   },
@@ -182,11 +182,11 @@ export const leaveRequests = [
     id: "LR004",
     employeeId: "EMP005",
     employeeName: "Emma Rodriguez",
-    type: "Annual Leave",
+    type: "Bereavement Leave",
     startDate: "2024-11-18",
     endDate: "2024-11-20",
     days: 3,
-    reason: "Wedding attendance",
+    reason: "Family emergency",
     status: "Approved",
     requestDate: "2024-11-10"
   },
@@ -194,13 +194,25 @@ export const leaveRequests = [
     id: "LR005",
     employeeId: "EMP004",
     employeeName: "James Wilson",
-    type: "Sick Leave",
+    type: "Unpaid Leave",
     startDate: "2024-11-25",
     endDate: "2024-11-26",
     days: 2,
-    reason: "Flu symptoms",
+    reason: "Personal sabbatical",
     status: "Rejected",
     requestDate: "2024-11-24"
+  },
+  {
+    id: "LR006",
+    employeeId: "EMP006",
+    employeeName: "David Kim",
+    type: "Remote Work",
+    startDate: "2024-12-05",
+    endDate: "2024-12-06",
+    days: 2,
+    reason: "Working from hometown",
+    status: "Approved",
+    requestDate: "2024-12-01"
   }
 ];
 

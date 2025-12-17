@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+
 import { cn } from "../ui/utils";
 
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -30,16 +30,7 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 10);
-    }
-
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <header
@@ -120,16 +111,16 @@ export default function Navbar() {
             <ChevronDown className="ml-1 h-3 w-3 text-slate-400" />
           </button> */}
 
-          <div className="hidden md:flex justify-end">
-            <ProfileDropdown
-              name="Pristia Candra"
-              email="pristia@pickhub.com"
-              avatarUrl="https://avatars.githubusercontent.com/u/1"
-              onProfile={() => console.log("Profile")}
-              onSettings={() => console.log("Settings")}
-              onLogout={() => console.log("Logout")}
-            />
-          </div>
+        <div className="hidden md:flex justify-end">
+          <ProfileDropdown
+            name="Pristia Candra"
+            email="pristia@pickhub.com"
+            avatarUrl="https://avatars.githubusercontent.com/u/1"
+            onProfile={() => console.log("Profile")}
+            onSettings={() => console.log("Settings")}
+            onLogout={() => console.log("Logout")}
+          />
+        </div>
 
         {/* </div> */}
 
