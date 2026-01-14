@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "../../utils/supabase/client";
 
 import { cn } from "../ui/utils";
 
@@ -46,7 +48,33 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const [profile, setProfile] = useState<{ full_name: string | null; email: string | null }>({
+    full_name: "",
+    email: "",
+  });
+
   const isPlatform = pathname.startsWith("/platform");
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", user.id)
+          .single();
+
+        if (data) {
+          setProfile({
+            full_name: data.full_name || user.email?.split("@")[0] || "User",
+            email: data.email || user.email || "",
+          });
+        }
+      }
+    }
+    fetchProfile();
+  }, []);
 
   // Hide Navbar on login and register pages
   if (pathname === "/login" || pathname === "/register") {
@@ -122,40 +150,19 @@ export default function Navbar() {
           </div>
         </Tooltip.Provider>
 
-
-        {/* Profile */}
-        {/* <div className="hidden md:flex items-end justify-end">
-          <button className="flex items-center gap-2 rounded-full bg-slate-900/70 px-2 py-1 ring-1 ring-slate-800 hover:ring-slate-700 transition cursor-pointer">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://avatars.githubusercontent.com/u/1" />
-              <AvatarFallback>PR</AvatarFallback>
-            </Avatar>
-            <div className="hidden flex-col text-left text-xs lg:flex">
-              <span className="font-semibold leading-tight text-white">
-                Pristia Candra
-              </span>
-              <span className="text-[11px] text-slate-400">
-                pristia@pickhub.com
-              </span>
-            </div>
-            <ChevronDown className="ml-1 h-3 w-3 text-slate-400" />
-          </button> */}
-
         <div className="hidden md:flex justify-end">
           <ProfileDropdown
-            name="Pristia Candra"
-            email="pristia@humana.com"
+            name={profile.full_name || "User"}
+            email={profile.email || ""}
             avatarUrl="https://avatars.githubusercontent.com/u/1"
             onProfile={() => console.log("Profile")}
             onSettings={() => router.push(isPlatform ? "/platform/settings" : "/company/settings")}
-            onLogout={() => {
-              console.log("Logout");
+            onLogout={async () => {
+              await supabase.auth.signOut();
               router.push("/login");
             }}
           />
         </div>
-
-        {/* </div> */}
 
       </nav>
     </header>
