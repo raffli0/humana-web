@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Search, Plus, MapPin, Briefcase, Users, Calendar, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
-import { Avatar, AvatarFallback } from "../../components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 
-import { supabase } from "../../utils/supabase/client";
+import { supabase } from "../../../utils/supabase/client";
 
 export default function Recruitment() {
     const [recruitments, setRecruitments] = useState<any[]>([]);

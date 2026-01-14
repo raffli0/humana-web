@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Search, Plus, FileText, Check, X, Clock, Eye } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "../../components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -17,7 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "../../components/ui/alert-dialog";
+} from "../../../components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
+} from "../../../components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +33,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../components/ui/dialog";
+} from "../../../components/ui/dialog";
 
-import { supabase } from "../../utils/supabase/client";
+import { supabase } from "../../../utils/supabase/client";
 
 export default function LeaveRequest() {
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
