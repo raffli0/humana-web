@@ -50,14 +50,14 @@ import {
 import { supabase } from "../../../utils/supabase/client";
 
 const payrollData = [
-  { month: "Jan", gross: 26000, tax: 4000, net: 22000 },
-  { month: "Feb", gross: 30000, tax: 5000, net: 25000 },
-  { month: "Mar", gross: 42000, tax: 7000, net: 35000 },
-  { month: "Apr", gross: 52000, tax: 9000, net: 43000 },
-  { month: "May", gross: 48000, tax: 8000, net: 40000 },
-  { month: "Jun", gross: 45000, tax: 7500, net: 37500 },
-  { month: "Jul", gross: 50000, tax: 8200, net: 41800 },
-  { month: "Aug", gross: 53000, tax: 8600, net: 44400 },
+  { month: "Jan", gross: 26000000, tax: 4000000, net: 22000000 },
+  { month: "Feb", gross: 30000000, tax: 5000000, net: 25000000 },
+  { month: "Mar", gross: 42000000, tax: 7000000, net: 35000000 },
+  { month: "Apr", gross: 52000000, tax: 9000000, net: 43000000 },
+  { month: "May", gross: 48000000, tax: 8000000, net: 40000000 },
+  { month: "Jun", gross: 45000000, tax: 7500000, net: 37500000 },
+  { month: "Jul", gross: 50000000, tax: 8200000, net: 41800000 },
+  { month: "Aug", gross: 53000000, tax: 8600000, net: 44400000 },
 ];
 
 const departmentStats = [
@@ -237,7 +237,7 @@ export default function Dashboard() {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: "#6B7280", fontSize: 12 }}
-                        tickFormatter={(value) => `$${value / 1000}k`}
+                        tickFormatter={(value) => new Intl.NumberFormat('id-ID', { notation: "compact", compactDisplay: "short" }).format(value)}
                       />
                       <Tooltip
                         contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
@@ -354,8 +354,8 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="mt-4">
-                    <div className="text-3xl font-bold">$124,500</div>
-                    <div className="text-indigo-100 text-sm mt-1">Scheduled for Oct 25, 2023</div>
+                    <div className="text-3xl font-bold">Rp 124.500.999</div>
+                    <div className="text-indigo-100 text-sm mt-1">Scheduled for Feb 25, 2026</div>
                   </div>
                   <Separator className="my-6 bg-white/20" />
                   <div className="flex justify-between items-center text-sm">

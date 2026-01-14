@@ -22,7 +22,7 @@ export default function PlatformDashboard() {
     const [stats, setStats] = useState({
         totalCompanies: 24,
         totalEmployees: 1240,
-        monthlyRevenue: 12500,
+        monthlyRevenue: 125000000,
         activeSubscribers: 18
     })
     const [loading, setLoading] = useState(false)
@@ -56,7 +56,7 @@ export default function PlatformDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatsCard title="Total Companies" value={stats.totalCompanies.toString()} icon={Building2} trend="+2 new this week" />
                 <StatsCard title="Total Users" value={stats.totalEmployees.toString()} icon={Users} trend="+124 this month" />
-                <StatsCard title="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} icon={CreditCard} trend="+15.2% vs last month" />
+                <StatsCard title="Monthly Revenue" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(stats.monthlyRevenue)} icon={CreditCard} trend="+15.2% vs last month" />
                 <StatsCard title="Active Subs" value={stats.activeSubscribers.toString()} icon={Activity} trend="75% conversion rate" />
             </div>
 

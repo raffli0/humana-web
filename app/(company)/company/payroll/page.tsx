@@ -58,7 +58,9 @@ export default function Payroll() {
     // Calculate Stats
     const parseSalary = (salaryStr: string) => {
         if (!salaryStr) return 0;
-        return parseFloat(salaryStr.replace(/[^0-9.-]+/g, ""));
+        // improved parsing for IDR (removes non-digits) and standard currency
+        // This assumes no decimals for IDR, which is standard for salaries
+        return parseInt(salaryStr.replace(/\D/g, "") || "0");
     };
 
     const totalPayroll = payrollData.reduce((sum, item) => sum + parseSalary(item.salary), 0);
@@ -71,7 +73,7 @@ export default function Payroll() {
     const avgSalary = payrollData.length ? Math.round(totalPayroll / payrollData.length) : 0;
 
     const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
     };
 
     const getStatusColor = (status: string) => {
