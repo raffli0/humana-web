@@ -51,7 +51,7 @@ interface Position {
 interface CompanySettings {
     office_latitude: number | null;
     office_longitude: number | null;
-    office_radius_meters: number;
+    office_radius_meters: number | null;
     office_address: string | null;
 }
 
@@ -191,7 +191,7 @@ export default function CompanySettingsPage() {
                 company_id: companyId,
                 office_latitude: settings.office_latitude,
                 office_longitude: settings.office_longitude,
-                office_radius_meters: settings.office_radius_meters,
+                office_radius_meters: settings.office_radius_meters || 100,
                 office_address: settings.office_address,
                 updated_at: new Date().toISOString(),
             }, { onConflict: 'company_id' });
@@ -437,8 +437,14 @@ export default function CompanySettingsPage() {
                                 <Label>Allowed Radius (meters)</Label>
                                 <Input
                                     type="number"
-                                    value={settings.office_radius_meters}
-                                    onChange={(e) => setSettings({ ...settings, office_radius_meters: parseInt(e.target.value) || 100 })}
+                                    value={settings.office_radius_meters ?? ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSettings({
+                                            ...settings,
+                                            office_radius_meters: val === "" ? null : parseInt(val)
+                                        });
+                                    }}
                                     placeholder="100"
                                 />
                                 <p className="text-xs text-muted-foreground">

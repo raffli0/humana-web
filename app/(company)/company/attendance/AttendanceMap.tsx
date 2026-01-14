@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, LocateFixed, Building2 } from "lucide-react";
+
 
 export interface AttendanceRecord {
   id: string;
@@ -58,17 +59,16 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
             background-color: #4f46e5;
             width: 36px;
             height: 36px;
-            border-radius: 8px;
+            border-radius: 50%;
             border: 3px solid white;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
             z-index: 1000;
           ">
-            🏢
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M16 18h.01"/></svg>
           </div>
         `,
         iconSize: [36, 36],
@@ -163,6 +163,55 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
       const bounds = L.latLngBounds(points);
       mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
+
+    // Draw connection line if an attendance record is selected AND office location exists
+    if (selectedAttendance?.location && officeLocation && officeLocation.lat && officeLocation.lng) {
+      const officeLatLng = L.latLng(officeLocation.lat, officeLocation.lng);
+      const employeeLatLng = L.latLng(selectedAttendance.location.lat, selectedAttendance.location.lng);
+
+      const distance = officeLatLng.distanceTo(employeeLatLng);
+      const isWithinRadius = distance <= officeLocation.radius;
+
+      // Draw dashed line
+      const line = L.polyline([officeLatLng, employeeLatLng], {
+        color: isWithinRadius ? '#10b981' : '#ef4444',
+        weight: 2,
+        dashArray: '5, 10',
+        opacity: 0.8
+      }).addTo(mapInstanceRef.current);
+
+      // Add tooltip with distance info
+      const centerPoint = L.latLng(
+        (officeLocation.lat + selectedAttendance.location.lat) / 2,
+        (officeLocation.lng + selectedAttendance.location.lng) / 2
+      );
+
+      L.popup({
+        closeButton: false,
+        className: 'distance-popup',
+        autoClose: false,
+        closeOnClick: false
+      })
+        .setLatLng(centerPoint)
+        .setContent(`
+          <div style="text-align: center; font-size: 12px; font-weight: 500;">
+            <span style="color: ${isWithinRadius ? '#166534' : '#991b1b'}">
+              ${Math.round(distance)}m
+            </span>
+            <br/>
+            <span style="font-size: 10px; color: #666;">
+              ${isWithinRadius ? 'Within Radius' : 'Outside Range'}
+            </span>
+          </div>
+        `)
+        .openOn(mapInstanceRef.current);
+
+      markersRef.current.push(line);
+      // We don't push the popup to markersRef because openOn handles it, but maybe we should close previous popups?
+      // L.popup removes previous popups by default if using map.openPopup, but here we construct it.
+      // Ideally, clearing markersRef should handle it if we added it to layer.
+      // But openOn adds to map and closes previous.
+    }
   }, [attendance, selectedAttendance, onSelectAttendance, officeLocation]);
 
   const initMap = useCallback(() => {
@@ -174,12 +223,16 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
     // Initialize map centered on Jakarta
     const map = L.map(mapRef.current).setView([-6.2088, 106.8456], 12);
 
-    // Use CartoDB Positron tiles for better aesthetics and reliability
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+    // Use OpenStreetMap standard tiles for a colorful, familiar look
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
     }).addTo(map);
+    //     // Use CartoDB Positron tiles for better aesthetics and reliability
+    // L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    //   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    //   subdomains: 'abcd',
+    //   maxZoom: 20
 
     mapInstanceRef.current = map;
 
@@ -249,6 +302,23 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
             <p className="text-gray-600">No location data available</p>
           </div>
         </div>
+      )}
+
+      {/* Center Office Button */}
+      {officeLocation && officeLocation.lat && officeLocation.lng && (
+        <button
+          onClick={() => {
+            if (mapInstanceRef.current && officeLocation.lat && officeLocation.lng) {
+              mapInstanceRef.current.flyTo([officeLocation.lat, officeLocation.lng], 16, {
+                duration: 1.5
+              });
+            }
+          }}
+          className="absolute top-4 right-4 z-[1000] bg-white p-2.5 rounded-lg shadow-md border border-gray-200 hover:bg-gray-50 transition-colors group"
+          title="Center to Office"
+        >
+          <LocateFixed className="w-5 h-5 text-gray-600 group-hover:text-indigo-600" />
+        </button>
       )}
     </div>
   );
