@@ -12,7 +12,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "./popover"
-import { cn } from "./utils"
+import { cn } from "@/lib/utils"
 
 interface DatePickerProps {
     date?: Date

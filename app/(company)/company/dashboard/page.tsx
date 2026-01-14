@@ -74,9 +74,21 @@ export default function Dashboard() {
   const [recruitments, setRecruitments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [profile, setProfile] = useState<any>(null);
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        if (profileData) setProfile(profileData);
+      }
 
       // Fetch Employees
       const { data: employeesData } = await supabase.from('employees').select('*');
@@ -122,7 +134,9 @@ export default function Dashboard() {
       {/* Top Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Hello, Pristia!</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Hello, {profile?.full_name || profile?.email?.split('@')[0] || "User"}!
+          </h1>
           <p className="text-muted-foreground mt-1">
             Welcome back, here&apos;s your company overview.
           </p>

@@ -1,38 +1,182 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Upload, UserPlus, Mail, Phone } from "lucide-react";
+import { Search, Upload, UserPlus, Mail, Phone, Loader2, Copy, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
+import { Label } from "../../../components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "../../../components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
 
 import { supabase } from "../../../utils/supabase/client";
 
+interface Department {
+  id: string;
+  name: string;
+}
+
+interface Position {
+  id: string;
+  name: string;
+  department_id: string | null;
+}
+
+function generateToken(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let token = ''
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return token
+}
+
 export default function Employees() {
   const [employees, setEmployees] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [invitationLink, setInvitationLink] = useState<string | null>(null);
+
+  // Invite form state
+  const [inviteDeptId, setInviteDeptId] = useState<string>("");
+  const [invitePosId, setInvitePosId] = useState<string>("");
 
   useEffect(() => {
-    async function fetchEmployees() {
-      setLoading(true);
-      const { data } = await supabase.from('employees').select('*');
-      if (data) setEmployees(data);
-      setLoading(false);
-    }
-    fetchEmployees();
+    fetchData();
   }, []);
 
-  const departments = ["All", ...new Set(employees.map((e) => e.department))];
+  async function fetchData() {
+    setLoading(true);
+
+    // Get company_id from profile
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.company_id) {
+      // Fetch employees
+      const { data: empData } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('company_id', profile.company_id);
+      if (empData) setEmployees(empData);
+
+      // Fetch departments
+      const { data: deptData } = await supabase
+        .from("departments")
+        .select("*")
+        .eq("company_id", profile.company_id)
+        .order("name");
+      if (deptData) setDepartments(deptData);
+
+      // Fetch positions
+      const { data: posData } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("company_id", profile.company_id)
+        .order("name");
+      if (posData) setPositions(posData);
+    }
+
+    setLoading(false);
+  }
+
+  async function handleInviteEmployee(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const form = e.target as HTMLFormElement;
+    const fullName = (form.elements.namedItem("fullName") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.company_id) throw new Error("No company associated with your account");
+
+      const token = generateToken();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 48);
+
+      const { error } = await supabase
+        .from("invitations")
+        .insert({
+          email: email,
+          full_name: fullName,
+          company_id: profile.company_id,
+          role: "employee",
+          token: token,
+          invited_by: user.id,
+          expires_at: expiresAt.toISOString(),
+          department_id: inviteDeptId || null,
+          position_id: invitePosId || null,
+        });
+
+      if (error) throw error;
+
+      const link = `${window.location.origin}/activate-account?token=${token}`;
+      setInvitationLink(link);
+      console.log("📧 Employee Invitation Link:", link);
+
+      form.reset();
+      setInviteDeptId("");
+      setInvitePosId("");
+    } catch (err: any) {
+      alert(err.message || "Failed to send invitation");
+    }
+
+    setIsSubmitting(false);
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+  }
+
+  // Filter positions by selected department
+  const filteredPositions = inviteDeptId
+    ? positions.filter((p) => p.department_id === inviteDeptId)
+    : positions;
+
+  const departmentFilters = ["All", ...new Set(employees.map((e) => e.department).filter(Boolean))];
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
-      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.id.toLowerCase().includes(searchQuery.toLowerCase());
+      emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.id?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDepartment =
       selectedDepartment === "All" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -50,9 +194,93 @@ export default function Employees() {
           <Button variant="outline" className="gap-2">
             <Upload className="h-4 w-4" /> Import
           </Button>
-          <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-            <UserPlus className="h-4 w-4" /> Add Employee
-          </Button>
+          <Dialog open={isInviteOpen} onOpenChange={(open) => { setIsInviteOpen(open); if (!open) { setInvitationLink(null); setInviteDeptId(""); setInvitePosId(""); } }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                <UserPlus className="h-4 w-4" /> Invite Employee
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Invite New Employee</DialogTitle>
+                <DialogDescription>
+                  Send an activation link to onboard a new team member.
+                </DialogDescription>
+              </DialogHeader>
+              {invitationLink ? (
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-green-800 text-sm font-medium">Invitation created!</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Activation Link</Label>
+                    <div className="flex gap-2">
+                      <Input value={invitationLink} readOnly className="text-xs" />
+                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(invitationLink)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Share this link with the employee. Valid for 48 hours.
+                    </p>
+                  </div>
+                  <Button className="w-full" onClick={() => { setIsInviteOpen(false); setInvitationLink(null) }}>
+                    Done
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleInviteEmployee} className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input id="fullName" name="fullName" placeholder="John Doe" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" name="email" type="email" placeholder="john@company.com" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Department</Label>
+                    <Select value={inviteDeptId} onValueChange={(val: string) => { setInviteDeptId(val); setInvitePosId(""); }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {departments.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No departments yet. Add them in Settings.</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Position</Label>
+                    <Select value={invitePosId} onValueChange={setInvitePosId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredPositions.map((pos) => (
+                          <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {positions.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No positions yet. Add them in Settings.</p>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" className="w-full bg-indigo-600" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Send Invitation
+                    </Button>
+                  </DialogFooter>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -76,12 +304,10 @@ export default function Employees() {
                   />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                  {departments.map((dept) => (
+                  {departmentFilters.map((dept) => (
                     <Button
                       key={dept}
-                      // @ts-ignore
                       variant={selectedDepartment === dept ? "default" : "outline"}
-                      // @ts-ignore
                       onClick={() => setSelectedDepartment(dept)}
                       className={`whitespace-nowrap ${selectedDepartment === dept
                         ? "bg-slate-900 text-white hover:bg-slate-800"
@@ -89,7 +315,6 @@ export default function Employees() {
                         }`}
                       size="sm"
                     >
-                      {/* @ts-ignore */}
                       {dept}
                     </Button>
                   ))}
@@ -107,7 +332,7 @@ export default function Employees() {
                     <Avatar className="h-20 w-20 ring-4 ring-slate-50 mb-4">
                       <AvatarImage src={employee.avatar} alt={employee.name} />
                       <AvatarFallback className="text-lg bg-indigo-100 text-indigo-700 font-medium">
-                        {employee.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
+                        {employee.name?.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
 
@@ -116,9 +341,11 @@ export default function Employees() {
                       <p className="text-sm text-gray-500 truncate max-w-[200px]">{employee.position}</p>
                     </div>
 
-                    <Badge variant="secondary" className="mt-3 bg-slate-100 text-slate-700 hover:bg-slate-200">
-                      {employee.department}
-                    </Badge>
+                    {employee.department && (
+                      <Badge variant="secondary" className="mt-3 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        {employee.department}
+                      </Badge>
+                    )}
 
                     <div className="w-full mt-6 space-y-3 pt-6 border-t border-gray-100">
                       <div className="flex items-center justify-between text-sm text-gray-500">
@@ -130,12 +357,14 @@ export default function Employees() {
                         {employee.email}
                       </div>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
-                        <span className="flex items-center gap-2">
-                          <Phone className="w-3.5 h-3.5" /> Phone
-                        </span>
-                        <span className="text-gray-900">{employee.phone}</span>
-                      </div>
+                      {employee.phone && (
+                        <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
+                          <span className="flex items-center gap-2">
+                            <Phone className="w-3.5 h-3.5" /> Phone
+                          </span>
+                          <span className="text-gray-900">{employee.phone}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-full mt-6">
@@ -156,7 +385,7 @@ export default function Employees() {
                   <Search className="h-6 w-6 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">No employees found</h3>
-                <p className="text-gray-600">Try adjusting your filters or search query.</p>
+                <p className="text-gray-600">Try adjusting your filters or invite new employees.</p>
               </CardContent>
             </Card>
           )}

@@ -16,6 +16,11 @@ import {
   Wallet,
   CalendarCheck,
   Briefcase,
+  Building2,
+  BarChart3,
+  Cloud,
+  Shield,
+  Settings,
 } from "lucide-react";
 
 const navItems = [
@@ -27,13 +32,24 @@ const navItems = [
   { name: "Recruitments", href: "/company/recruitment", icon: Briefcase },
 ];
 
+const platformNavItems = [
+  { name: "Dashboard", href: "/platform/dashboard", icon: LayoutDashboard },
+  { name: "Companies", href: "/platform/companies", icon: Building2 },
+  { name: "Analytics", href: "/platform/analytics", icon: BarChart3 },
+  { name: "Infrastructure", href: "/platform/infrastructure", icon: Cloud },
+  { name: "System Settings", href: "/platform/settings", icon: Settings },
+  { name: "Admin Roles", href: "/platform/admin-roles", icon: Shield },
+];
+
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const isPlatform = pathname.startsWith("/platform");
+
   // Hide Navbar on login and register pages
-  if (pathname === "/public/login" || pathname === "/public/register") {
+  if (pathname === "/login" || pathname === "/register") {
     return null;
   }
 
@@ -63,7 +79,7 @@ export default function Navbar() {
         {/* Desktop nav */}
         <Tooltip.Provider delayDuration={100}>
           <div className="hidden md:flex items-center gap-1 text-sm">
-            {navItems.map((item) => {
+            {(isPlatform ? platformNavItems : navItems).map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href;
 
@@ -128,13 +144,13 @@ export default function Navbar() {
         <div className="hidden md:flex justify-end">
           <ProfileDropdown
             name="Pristia Candra"
-            email="pristia@pickhub.com"
+            email="pristia@humana.com"
             avatarUrl="https://avatars.githubusercontent.com/u/1"
             onProfile={() => console.log("Profile")}
-            onSettings={() => console.log("Settings")}
+            onSettings={() => router.push(isPlatform ? "/platform/settings" : "/company/settings")}
             onLogout={() => {
               console.log("Logout");
-              router.push("/public/login");
+              router.push("/login");
             }}
           />
         </div>
