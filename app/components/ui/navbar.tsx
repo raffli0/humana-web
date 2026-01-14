@@ -19,12 +19,12 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Employees", href: "/employee", icon: Users },
-  { name: "Attendance", href: "/attendance", icon: CalendarCheck },
-  { name: "Payroll", href: "/payroll", icon: Wallet },
-  { name: "Leave Requests", href: "/leave", icon: ClipboardList },
-  { name: "Recruitments", href: "/recruitment", icon: Briefcase },
+  { name: "Dashboard", href: "/company/dashboard", icon: LayoutDashboard },
+  { name: "Employees", href: "/company/employee", icon: Users },
+  { name: "Attendance", href: "/company/attendance", icon: CalendarCheck },
+  { name: "Payroll", href: "/company/payroll", icon: Wallet },
+  { name: "Leave Requests", href: "/company/leave", icon: ClipboardList },
+  { name: "Recruitments", href: "/company/recruitment", icon: Briefcase },
 ];
 
 
@@ -33,9 +33,10 @@ export default function Navbar() {
   const router = useRouter();
 
   // Hide Navbar on login and register pages
-  if (pathname === "/login" || pathname === "/register") {
+  if (pathname === "/public/login" || pathname === "/public/register") {
     return null;
   }
+
 
 
   return (
@@ -133,7 +134,7 @@ export default function Navbar() {
             onSettings={() => console.log("Settings")}
             onLogout={() => {
               console.log("Logout");
-              router.push("/login");
+              router.push("/public/login");
             }}
           />
         </div>

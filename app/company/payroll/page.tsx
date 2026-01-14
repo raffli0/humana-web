@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { FileText, Search, DollarSign, TrendingUp, Users, Download, ArrowUpRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import {
     Table,
     TableBody,
@@ -14,8 +14,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "../components/ui/table";
-import { supabase } from "../utils/supabase/client";
+} from "../../components/ui/table";
+import { supabase } from "../../utils/supabase/client";
 
 export default function Payroll() {
     const [payrollData, setPayrollData] = useState<any[]>([]);

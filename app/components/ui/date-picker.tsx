@@ -4,15 +4,15 @@ import * as React from "react"
 import { CalendarIcon } from "lucide-react"
 
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
+import { Button } from "./button"
+import { Calendar } from "./calendar"
+import { Input } from "./input"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+} from "./popover"
+import { cn } from "./utils"
 
 interface DatePickerProps {
     date?: Date

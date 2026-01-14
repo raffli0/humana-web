@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Search, Upload, UserPlus, Mail, Phone } from "lucide-react";
-import { Card, CardContent } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 
-import { supabase } from "../utils/supabase/client";
+import { supabase } from "../../utils/supabase/client";
 
 export default function Employees() {
   const [employees, setEmployees] = useState<any[]>([]);

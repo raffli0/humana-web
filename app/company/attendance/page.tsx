@@ -3,21 +3,21 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { MapPin, Clock, Search, Download, Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Button } from "../components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
-import { Input } from "../components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../../components/ui/avatar";
+import { Input } from "../../components/ui/input";
+import { DatePicker } from "../../components/ui/date-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import AttendanceMap, { AttendanceRecord } from "../attendance/AttendanceMap";
+} from "../../components/ui/dropdown-menu";
+import AttendanceMap, { AttendanceRecord } from "./AttendanceMap";
 import { cn } from "@/lib/utils";
-import { supabase } from "../utils/supabase/client";
+import { supabase } from "../../utils/supabase/client";
 
 export default function Attendance() {
   const [date, setDate] = useState<Date | undefined>(new Date());
