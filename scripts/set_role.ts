@@ -1,8 +1,12 @@
 import { createClient } from "@supabase/supabase-js"
 
-// Hardcoded for now as per the app's current state
-const supabaseUrl = "https://dnmtpwbfnptybciyqlcp.supabase.co"
-const supabaseAnonKey = "sb_publishable_YdoBJ9r2kBi6kEgVF3LNtg_a39wBdvl"
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Error: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in environment variables.")
+    process.exit(1)
+}
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 

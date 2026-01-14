@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import {
   Users,
   Briefcase,
@@ -95,7 +96,8 @@ export default function Dashboard() {
       if (employeesData) setEmployees(employeesData);
 
       // Fetch Attendance (for today)
-      const today = new Date().toISOString().split("T")[0];
+      // Use local date to match Attendance page logic (client timezone)
+      const today = format(new Date(), "yyyy-MM-dd");
       const { data: attendanceData } = await supabase
         .from('attendance')
         .select('*, employees(name, avatar)')

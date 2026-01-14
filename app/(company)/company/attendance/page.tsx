@@ -24,14 +24,44 @@ export default function Attendance() {
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [officeLocation, setOfficeLocation] = useState<{ lat: number; lng: number; radius: number; address: string | null } | null>(null);
 
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
 
   useEffect(() => {
-    async function fetchAttendance() {
+    async function fetchData() {
       if (!formattedDate) return;
 
       setLoading(true);
+
+      // Fetch company settings
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("company_id")
+          .eq("id", user.id)
+          .single();
+
+        if (profile?.company_id) {
+          const { data: settings } = await supabase
+            .from("company_settings")
+            .select("office_latitude, office_longitude, office_radius_meters, office_address")
+            .eq("company_id", profile.company_id)
+            .single();
+
+          if (settings && settings.office_latitude && settings.office_longitude) {
+            setOfficeLocation({
+              lat: settings.office_latitude,
+              lng: settings.office_longitude,
+              radius: settings.office_radius_meters || 100,
+              address: settings.office_address
+            });
+          }
+        }
+      }
+
+      // Fetch Attendance
       const { data } = await supabase
         .from('attendance')
         .select('*, employees(name, avatar, department)')
@@ -54,7 +84,7 @@ export default function Attendance() {
       }
       setLoading(false);
     }
-    fetchAttendance();
+    fetchData();
   }, [formattedDate]);
 
   const stats = {
@@ -325,6 +355,7 @@ export default function Attendance() {
               attendance={attendanceData}
               selectedAttendance={selectedAttendance}
               onSelectAttendance={setSelectedAttendance}
+              officeLocation={officeLocation}
             />
             {selectedAttendance?.location && (
               <div className="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-gray-200/50 text-sm max-w-[280px] animate-in fade-in slide-in-from-bottom-2">

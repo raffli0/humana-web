@@ -62,6 +62,11 @@ export default function Employees() {
   const [inviteDeptId, setInviteDeptId] = useState<string>("");
   const [invitePosId, setInvitePosId] = useState<string>("");
 
+  // View detail state
+  const [viewEmployee, setViewEmployee] = useState<any>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -156,6 +161,40 @@ export default function Employees() {
       setInvitePosId("");
     } catch (err: any) {
       alert(err.message || "Failed to send invitation");
+    }
+
+    setIsSubmitting(false);
+  }
+
+  async function handleUpdateEmployee(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!viewEmployee) return;
+
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .update({
+          name: viewEmployee.name,
+          phone: viewEmployee.phone,
+          department: viewEmployee.department,
+          position: viewEmployee.position,
+          status: viewEmployee.status
+        })
+        .eq('id', viewEmployee.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setEmployees(employees.map(emp =>
+        emp.id === viewEmployee.id ? viewEmployee : emp
+      ));
+
+      setIsEditing(false);
+      // alert("Employee updated successfully");
+    } catch (err: any) {
+      alert(err.message || "Failed to update employee");
     }
 
     setIsSubmitting(false);
@@ -284,6 +323,155 @@ export default function Employees() {
         </div>
       </div>
 
+      {/* View Employee Dialog */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Edit Employee" : "Employee Profile"}</DialogTitle>
+            <DialogDescription>
+              {isEditing ? "Update employee information." : "Detailed information about the employee."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewEmployee && (
+            isEditing ? (
+              <form onSubmit={handleUpdateEmployee} className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Full Name</Label>
+                    <Input
+                      value={viewEmployee.name}
+                      onChange={(e) => setViewEmployee({ ...viewEmployee, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select
+                      value={viewEmployee.status || "Active"}
+                      onValueChange={(val) => setViewEmployee({ ...viewEmployee, status: val })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        <SelectItem value="On Leave">On Leave</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone</Label>
+                    <Input
+                      value={viewEmployee.phone || ""}
+                      onChange={(e) => setViewEmployee({ ...viewEmployee, phone: e.target.value })}
+                      placeholder="+1 234..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input value={viewEmployee.email} disabled className="bg-slate-50 text-slate-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Department</Label>
+                    <Select
+                      value={departments.find(d => d.name === viewEmployee.department)?.id || "custom"}
+                      onValueChange={(val) => {
+                        const deptName = departments.find(d => d.id === val)?.name || viewEmployee.department;
+                        setViewEmployee({ ...viewEmployee, department: deptName });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={viewEmployee.department || "Select..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Position</Label>
+                    <Input
+                      value={viewEmployee.position || ""}
+                      onChange={(e) => setViewEmployee({ ...viewEmployee, position: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isSubmitting}>Cancel</Button>
+                  <Button type="submit" className="bg-indigo-600" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </form>
+            ) : (
+              <div className="space-y-6 pt-4">
+                {/* Header Info */}
+                <div className="flex items-start gap-4">
+                  <Avatar className="h-20 w-20 ring-4 ring-slate-50">
+                    <AvatarImage src={viewEmployee.avatar} alt={viewEmployee.name} />
+                    <AvatarFallback className="text-xl bg-indigo-100 text-indigo-700 font-medium">
+                      {viewEmployee.name?.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-gray-900">{viewEmployee.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-slate-100 text-slate-700">
+                        {viewEmployee.position || "No Position"}
+                      </Badge>
+                      <Badge className={viewEmployee.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                        {viewEmployee.status || "Inactive"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground pt-1">ID: <span className="font-mono text-xs">{viewEmployee.id}</span></p>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-6 pt-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Email Address</Label>
+                    <div className="flex items-center gap-2 text-sm text-gray-900 font-medium p-2 bg-slate-50 rounded-md">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      {viewEmployee.email}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Phone Number</Label>
+                    <div className="flex items-center gap-2 text-sm text-gray-900 font-medium p-2 bg-slate-50 rounded-md">
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      {viewEmployee.phone || "Not provided"}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Department</Label>
+                    <p className="text-sm font-medium pl-1">{viewEmployee.department || "Unassigned"}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Date Joined</Label>
+                    <p className="text-sm font-medium pl-1">{viewEmployee.join_date ? new Date(viewEmployee.join_date).toLocaleDateString('en-US', { dateStyle: 'long' }) : "-"}</p>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-2 border-t border-gray-100">
+                  <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
+                  <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsEditing(true)}>Edit Details</Button>
+                </div>
+              </div>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
+
       {loading ? (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -368,7 +556,15 @@ export default function Employees() {
                     </div>
 
                     <div className="w-full mt-6">
-                      <Button variant="outline" className="w-full border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                      <Button
+                        variant="outline"
+                        className="w-full border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                        onClick={() => {
+                          setViewEmployee(employee);
+                          setIsEditing(false); // Reset edit mode
+                          setIsViewOpen(true);
+                        }}
+                      >
                         View Profile
                       </Button>
                     </div>

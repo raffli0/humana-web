@@ -184,6 +184,7 @@ export default function CompanySettingsPage() {
         setSaving(true);
 
         // Upsert company settings
+        // Must specify onConflict to use company_id for uniqueness check
         const { error } = await supabase
             .from("company_settings")
             .upsert({
@@ -193,10 +194,13 @@ export default function CompanySettingsPage() {
                 office_radius_meters: settings.office_radius_meters,
                 office_address: settings.office_address,
                 updated_at: new Date().toISOString(),
-            });
+            }, { onConflict: 'company_id' });
 
         if (!error) {
             alert("Settings saved successfully!");
+        } else {
+            console.error("Save error:", error);
+            alert("Failed to save settings: " + error.message);
         }
         setSaving(false);
     }
