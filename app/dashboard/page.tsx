@@ -285,7 +285,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Payment Status */}
-          <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+          <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-[#0C212F] text-white">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-white">
                 <CreditCard className="h-5 w-5 opacity-80" />

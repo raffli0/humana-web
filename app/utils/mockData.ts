@@ -1,6 +1,6 @@
 export const employees = [
   {
-    id: "EMP001",
+    id: "ENG001",
     name: "Sarah Johnson",
     email: "sarah.johnson@humana.com",
     department: "Engineering",
@@ -11,7 +11,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
   },
   {
-    id: "EMP002",
+    id: "MKT002",
     name: "Michael Chen",
     email: "michael.chen@humana.com",
     department: "Marketing",
@@ -22,7 +22,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
   },
   {
-    id: "EMP003",
+    id: "HR003",
     name: "Priya Patel",
     email: "priya.patel@humana.com",
     department: "HR",
@@ -33,7 +33,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya"
   },
   {
-    id: "EMP004",
+    id: "ENG004",
     name: "James Wilson",
     email: "james.wilson@humana.com",
     department: "Engineering",
@@ -44,7 +44,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James"
   },
   {
-    id: "EMP005",
+    id: "SAL005",
     name: "Emma Rodriguez",
     email: "emma.rodriguez@humana.com",
     department: "Sales",
@@ -55,7 +55,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma"
   },
   {
-    id: "EMP006",
+    id: "FIN006",
     name: "David Kim",
     email: "david.kim@humana.com",
     department: "Finance",
@@ -66,7 +66,7 @@ export const employees = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David"
   },
   {
-    id: "EMP007",
+    id: "FIN008",
     name: "Kim Jong Un",
     email: "Kim.jong@humana.com",
     department: "Finance",
@@ -75,13 +75,24 @@ export const employees = [
     phone: "+62 817-8901-2345",
     status: "Active",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kim"
+  },
+  {
+    id: "ENG009",
+    name: "John Nathan",
+    email: "john.nathan@humana.com",
+    department: "Engineering",
+    position: "Software Engineer",
+    joinDate: "2021-11-08",
+    phone: "+62 819-3456-6666",
+    status: "Active",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
   }
 ];
 
 export const attendance = [
   {
     id: "ATT001",
-    employeeId: "EMP001",
+    employeeId: "ENG001",
     employeeName: "Sarah Johnson",
     date: "2024-11-24",
     checkIn: "08:45",
@@ -91,7 +102,7 @@ export const attendance = [
   },
   {
     id: "ATT002",
-    employeeId: "EMP002",
+    employeeId: "MKT002",
     employeeName: "Michael Chen",
     date: "2024-11-24",
     checkIn: "09:00",
@@ -101,7 +112,7 @@ export const attendance = [
   },
   {
     id: "ATT003",
-    employeeId: "EMP003",
+    employeeId: "HR003",
     employeeName: "Priya Patel",
     date: "2024-11-24",
     checkIn: "08:30",
@@ -111,7 +122,7 @@ export const attendance = [
   },
   {
     id: "ATT004",
-    employeeId: "EMP004",
+    employeeId: "ENG004",
     employeeName: "James Wilson",
     date: "2024-11-24",
     checkIn: "08:50",
@@ -121,7 +132,7 @@ export const attendance = [
   },
   {
     id: "ATT005",
-    employeeId: "EMP005",
+    employeeId: "SAL005",
     employeeName: "Emma Rodriguez",
     date: "2024-11-24",
     checkIn: "09:15",
@@ -131,7 +142,7 @@ export const attendance = [
   },
   {
     id: "ATT006",
-    employeeId: "EMP006",
+    employeeId: "FIN006",
     employeeName: "David Kim",
     date: "2024-11-24",
     checkIn: null,
@@ -144,7 +155,7 @@ export const attendance = [
 export const leaveRequests = [
   {
     id: "LR001",
-    employeeId: "EMP001",
+    employeeId: "ENG001",
     employeeName: "Sarah Johnson",
     type: "Annual Leave",
     startDate: "2024-12-01",
@@ -156,7 +167,7 @@ export const leaveRequests = [
   },
   {
     id: "LR002",
-    employeeId: "EMP002",
+    employeeId: "MKT002",
     employeeName: "Michael Chen",
     type: "Sick Leave",
     startDate: "2024-11-22",
@@ -168,7 +179,7 @@ export const leaveRequests = [
   },
   {
     id: "LR003",
-    employeeId: "EMP003",
+    employeeId: "HR003",
     employeeName: "Priya Patel",
     type: "Maternity Leave",
     startDate: "2024-12-10",
@@ -180,7 +191,7 @@ export const leaveRequests = [
   },
   {
     id: "LR004",
-    employeeId: "EMP005",
+    employeeId: "SAL005",
     employeeName: "Emma Rodriguez",
     type: "Bereavement Leave",
     startDate: "2024-11-18",
@@ -192,7 +203,7 @@ export const leaveRequests = [
   },
   {
     id: "LR005",
-    employeeId: "EMP004",
+    employeeId: "ENG004",
     employeeName: "James Wilson",
     type: "Unpaid Leave",
     startDate: "2024-11-25",
@@ -204,7 +215,7 @@ export const leaveRequests = [
   },
   {
     id: "LR006",
-    employeeId: "EMP006",
+    employeeId: "FIN006",
     employeeName: "David Kim",
     type: "Remote Work",
     startDate: "2024-12-05",

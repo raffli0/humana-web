@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "../ui/utils";
 
@@ -30,6 +30,12 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Hide Navbar on login and register pages
+  if (pathname === "/login" || pathname === "/register") {
+    return null;
+  }
 
 
   return (
@@ -44,7 +50,14 @@ export default function Navbar() {
       <nav className="grid grid-cols-[1fr_auto_1fr] items-center px-6 py-4">
 
         {/* Logo */}
-        <div className="text-lg font-semibold tracking-tight text-white">Humana</div>
+        <div>
+          <div className="flex items-center gap-2 font-semibold text-xl">
+            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
+              <span className="text-white font-bold">H</span>
+            </div>
+            <span className="text-white font-semibold">Humana</span>
+          </div>
+        </div>
 
         {/* Desktop nav */}
         <Tooltip.Provider delayDuration={100}>
@@ -118,7 +131,10 @@ export default function Navbar() {
             avatarUrl="https://avatars.githubusercontent.com/u/1"
             onProfile={() => console.log("Profile")}
             onSettings={() => console.log("Settings")}
-            onLogout={() => console.log("Logout")}
+            onLogout={() => {
+              console.log("Logout");
+              router.push("/login");
+            }}
           />
         </div>
 
