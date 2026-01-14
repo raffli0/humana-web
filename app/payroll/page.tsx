@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, Search, DollarSign, TrendingUp, Users, Download, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -15,20 +15,36 @@ import {
     TableHeader,
     TableRow,
 } from "../components/ui/table";
-
-// Mock Data for Payroll
-const payrollData = [
-    { id: "PY-001", employee: "Alice Johnson", role: "Software Engineer", salary: "$4,500", status: "Paid", date: "Oct 25, 2023", method: "Bank Transfer" },
-    { id: "PY-002", employee: "Bob Smith", role: "Product Manager", salary: "$5,200", status: "Paid", date: "Oct 25, 2023", method: "Bank Transfer" },
-    { id: "PY-003", employee: "Charlie Brown", role: "Designer", salary: "$3,800", status: "Processing", date: "Oct 25, 2023", method: "Bank Transfer" },
-    { id: "PY-004", employee: "Diana Prince", role: "HR Specialist", salary: "$3,500", status: "Pending", date: "Oct 25, 2023", method: "Check" },
-    { id: "PY-005", employee: "Evan Wright", role: "Developer", salary: "$4,200", status: "Paid", date: "Oct 25, 2023", method: "Bank Transfer" },
-    { id: "PY-006", employee: "Fiona Gallagher", role: "Support", salary: "$3,000", status: "Failed", date: "Oct 25, 2023", method: "Bank Transfer" },
-];
+import { supabase } from "../utils/supabase/client";
 
 export default function Payroll() {
+    const [payrollData, setPayrollData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
+
+    useEffect(() => {
+        async function fetchPayroll() {
+            setLoading(true);
+            const { data } = await supabase
+                .from('payroll')
+                .select('*, employees(name, avatar, position)')
+                .order('date', { ascending: false });
+
+            if (data) {
+                // Transform data for easier usage
+                const transformed = data.map((item: any) => ({
+                    ...item,
+                    employee: item.employees?.name || "Unknown",
+                    role: item.employees?.position || "Staff", // Fallback or use DB role
+                    avatar: item.employees?.avatar
+                }));
+                setPayrollData(transformed);
+            }
+            setLoading(false);
+        }
+        fetchPayroll();
+    }, []);
 
     const statuses = ["All", "Paid", "Pending", "Processing", "Failed"];
 
@@ -38,6 +54,25 @@ export default function Payroll() {
         const matchesStatus = filterStatus === "All" || item.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
+
+    // Calculate Stats
+    const parseSalary = (salaryStr: string) => {
+        if (!salaryStr) return 0;
+        return parseFloat(salaryStr.replace(/[^0-9.-]+/g, ""));
+    };
+
+    const totalPayroll = payrollData.reduce((sum, item) => sum + parseSalary(item.salary), 0);
+    const paidCount = payrollData.filter(i => i.status === "Paid").length;
+    const paidRate = payrollData.length ? Math.round((paidCount / payrollData.length) * 100) : 0;
+    const pendingAmount = payrollData
+        .filter(i => i.status === "Pending" || i.status === "Processing")
+        .reduce((sum, item) => sum + parseSalary(item.salary), 0);
+    const pendingCount = payrollData.filter(i => i.status === "Pending" || i.status === "Processing").length;
+    const avgSalary = payrollData.length ? Math.round(totalPayroll / payrollData.length) : 0;
+
+    const formatCurrency = (val: number) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -79,7 +114,7 @@ export default function Payroll() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Payroll</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">$24,200</p>
+                                <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalPayroll)}</p>
                             </div>
                             <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
                                 <DollarSign className="h-5 w-5" />
@@ -97,7 +132,7 @@ export default function Payroll() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Employees Paid</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">128</p>
+                                <p className="text-2xl font-bold text-gray-900 mt-1">{paidCount}</p>
                             </div>
                             <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
                                 <Users className="h-5 w-5" />
@@ -105,7 +140,7 @@ export default function Payroll() {
                         </div>
                         <div className="mt-4 flex items-center text-xs text-green-600">
                             <ArrowUpRight className="h-3 w-3 mr-1" />
-                            <span className="font-medium">98%</span>
+                            <span className="font-medium">{paidRate}%</span>
                             <span className="text-muted-foreground ml-1">success rate</span>
                         </div>
                     </CardContent>
@@ -115,14 +150,14 @@ export default function Payroll() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p className="text-2xl font-bold text-orange-600 mt-1">$3,500</p>
+                                <p className="text-2xl font-bold text-orange-600 mt-1">{formatCurrency(pendingAmount)}</p>
                             </div>
                             <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
                                 <FileText className="h-5 w-5" />
                             </div>
                         </div>
                         <div className="mt-4 text-xs text-muted-foreground">
-                            2 transactions pending
+                            {pendingCount} transactions pending
                         </div>
                     </CardContent>
                 </Card>
@@ -131,7 +166,7 @@ export default function Payroll() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Avg. Salary</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">$4,033</p>
+                                <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(avgSalary)}</p>
                             </div>
                             <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
                                 <TrendingUp className="h-5 w-5" />
@@ -179,56 +214,62 @@ export default function Payroll() {
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-slate-50 hover:bg-slate-50">
-                                <TableHead>Employee</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Method</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredPayroll.map((item) => (
-                                <TableRow key={item.id} className="hover:bg-slate-50/50">
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={`https://ui-avatars.com/api/?name=${item.employee}`} />
-                                                <AvatarFallback>{item.employee.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-gray-900">{item.employee}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-gray-500">{item.role}</TableCell>
-                                    <TableCell className="text-gray-500">{item.date}</TableCell>
-                                    <TableCell className="text-gray-500">{item.method}</TableCell>
-                                    <TableCell className="font-medium text-gray-900">{item.salary}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className={getStatusColor(item.status)}>
-                                            {item.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <span className="sr-only">Open menu</span>
-                                            <FileText className="h-4 w-4 text-gray-500" />
-                                        </Button>
-                                    </TableCell>
+                    {loading ? (
+                        <div className="flex items-center justify-center min-h-[400px]">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead>Employee</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Method</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
-                            ))}
-                            {filteredPayroll.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                                        No records found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredPayroll.map((item) => (
+                                    <TableRow key={item.id} className="hover:bg-slate-50/50">
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src={item.avatar} />
+                                                    <AvatarFallback>{item.employee.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium text-gray-900">{item.employee}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-gray-500">{item.role}</TableCell>
+                                        <TableCell className="text-gray-500">{item.date}</TableCell>
+                                        <TableCell className="text-gray-500">{item.method}</TableCell>
+                                        <TableCell className="font-medium text-gray-900">{item.salary}</TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline" className={getStatusColor(item.status)}>
+                                                {item.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                <span className="sr-only">Open menu</span>
+                                                <FileText className="h-4 w-4 text-gray-500" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {filteredPayroll.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                                            No records found.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </main>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { MapPin, Clock, Search, Download, Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -15,22 +15,53 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { attendance, employees } from "../utils/mockData";
 import AttendanceMap, { AttendanceRecord } from "../attendance/AttendanceMap";
 import { cn } from "@/lib/utils";
+import { supabase } from "../utils/supabase/client";
 
 export default function Attendance() {
-  const [date, setDate] = useState<Date | undefined>(new Date(2024, 10, 24)); // Nov 24, 2024
-  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(attendance[0] as unknown as AttendanceRecord);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-  const filteredAttendance = attendance.filter(a => a.date === formattedDate);
+
+  useEffect(() => {
+    async function fetchAttendance() {
+      if (!formattedDate) return;
+
+      setLoading(true);
+      const { data } = await supabase
+        .from('attendance')
+        .select('*, employees(name, avatar, department)')
+        .eq('date', formattedDate);
+
+      if (data) {
+        // Transform data to match AttendanceRecord interface
+        const transformedData = data.map((record: any) => ({
+          ...record,
+          employeeName: record.employees?.name || record.employee_name || "Unknown",
+          checkIn: record.check_in,
+          checkOut: record.check_out,
+          employeeId: record.employee_id,
+        }));
+        setAttendanceData(transformedData);
+
+        if (transformedData.length > 0 && !selectedAttendance) {
+          // Optional: select first record by default or leave null
+        }
+      }
+      setLoading(false);
+    }
+    fetchAttendance();
+  }, [formattedDate]);
 
   const stats = {
-    present: filteredAttendance.filter(a => a.status === "Present").length,
-    late: filteredAttendance.filter(a => a.status === "Late").length,
-    absent: filteredAttendance.filter(a => a.status === "Absent").length,
-    total: filteredAttendance.length
+    present: attendanceData.filter(a => a.status === "Present").length,
+    late: attendanceData.filter(a => a.status === "Late").length,
+    absent: attendanceData.filter(a => a.status === "Absent").length,
+    total: attendanceData.length
   };
 
   const getStatusConfig = (status: string) => {
@@ -44,10 +75,6 @@ export default function Attendance() {
       default:
         return { color: "text-slate-700 bg-slate-50 border-slate-200", icon: AlertCircle };
     }
-  };
-
-  const getEmployee = (id: string) => {
-    return employees.find((e) => e.id === id);
   };
 
   return (
@@ -177,84 +204,100 @@ export default function Attendance() {
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto p-0 bg-white">
-            <div className="divide-y divide-gray-50">
-              {filteredAttendance.map((record) => {
-                const employee = getEmployee(record.employeeId);
-                const isSelected = selectedAttendance?.id === record.id;
-                const statusConfig = getStatusConfig(record.status);
-                const StatusIcon = statusConfig.icon;
+            {loading ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {attendanceData.map((record) => {
+                  const employeeName = record.employees?.name || record.employeeName || "Unknown";
+                  const employeeAvatar = record.employees?.avatar;
+                  const employeeDept = record.employees?.department || "General";
 
-                return (
-                  <div
-                    key={record.id}
-                    onClick={() => setSelectedAttendance(record)}
-                    className={cn(
-                      "p-4 cursor-pointer transition-all hover:bg-slate-50 group border-l-4",
-                      isSelected
-                        ? "bg-indigo-50/40 border-indigo-500"
-                        : "border-transparent"
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-10 w-10 border border-gray-100 shadow-sm mt-0.5">
-                          <AvatarImage src={employee?.avatar} />
-                          <AvatarFallback className="bg-gradient-to-br from-indigo-100 to-slate-100 text-indigo-700 font-medium text-xs">
-                            {record.employeeName.split(" ").map(n => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className={cn(
-                            "text-sm font-semibold leading-none group-hover:text-indigo-700 transition-colors",
-                            isSelected ? "text-indigo-900" : "text-gray-900"
-                          )}>
-                            {record.employeeName}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <Badge variant="secondary" className="text-[10px] font-normal h-4 px-1.5 bg-slate-100 text-slate-500">
-                              {employee?.department || "General"}
-                            </Badge>
+                  const isSelected = selectedAttendance?.id === record.id;
+                  const statusConfig = getStatusConfig(record.status);
+                  const StatusIcon = statusConfig.icon;
+
+                  // Construct record for map compatibility if needed
+                  const mapRecord = {
+                    ...record,
+                    employeeName,
+                    location: record.location // Ensure location structure matches
+                  };
+
+                  return (
+                    <div
+                      key={record.id}
+                      onClick={() => setSelectedAttendance(mapRecord)}
+                      className={cn(
+                        "p-4 cursor-pointer transition-all hover:bg-slate-50 group border-l-4",
+                        isSelected
+                          ? "bg-indigo-50/40 border-indigo-500"
+                          : "border-transparent"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 border border-gray-100 shadow-sm mt-0.5">
+                            <AvatarImage src={employeeAvatar} />
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-100 to-slate-100 text-indigo-700 font-medium text-xs">
+                              {employeeName.split(" ").map((n: string) => n[0]).join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className={cn(
+                              "text-sm font-semibold leading-none group-hover:text-indigo-700 transition-colors",
+                              isSelected ? "text-indigo-900" : "text-gray-900"
+                            )}>
+                              {employeeName}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <Badge variant="secondary" className="text-[10px] font-normal h-4 px-1.5 bg-slate-100 text-slate-500">
+                                {employeeDept}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 shadow-sm", statusConfig.color)}>
+                          <StatusIcon className="h-3 w-3" />
+                          {record.status}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 mt-4 gap-2">
+                        <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+                            <Clock className="w-3 h-3 text-indigo-400" /> Check In
+                          </div>
+                          <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
+                            {record.checkIn || "--:--"}
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+                            <Clock className="w-3 h-3 text-orange-400" /> Check Out
+                          </div>
+                          <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
+                            {record.checkOut || "--:--"}
                           </div>
                         </div>
                       </div>
-                      <div className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 shadow-sm", statusConfig.color)}>
-                        <StatusIcon className="h-3 w-3" />
-                        {record.status}
-                      </div>
                     </div>
+                  );
+                })}
 
-                    <div className="grid grid-cols-2 mt-4 gap-2">
-                      <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
-                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                          <Clock className="w-3 h-3 text-indigo-400" /> Check In
-                        </div>
-                        <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
-                          {record.checkIn || "--:--"}
-                        </div>
-                      </div>
-                      <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
-                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                          <Clock className="w-3 h-3 text-orange-400" /> Check Out
-                        </div>
-                        <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
-                          {record.checkOut || "--:--"}
-                        </div>
-                      </div>
+                {attendanceData.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-40 text-center p-4">
+                    <div className="bg-slate-50 p-3 rounded-full mb-3">
+                      <Search className="h-5 w-5 text-slate-400" />
                     </div>
+                    <p className="text-sm font-medium text-gray-900">No records found</p>
+                    <p className="text-xs text-muted-foreground mt-1">Select a different date to view attendance.</p>
                   </div>
-                );
-              })}
-
-              {filteredAttendance.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-40 text-center p-4">
-                  <div className="bg-slate-50 p-3 rounded-full mb-3">
-                    <Search className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">No records found</p>
-                  <p className="text-xs text-muted-foreground mt-1">Select a different date to view attendance.</p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -279,7 +322,7 @@ export default function Attendance() {
           </CardHeader>
           <CardContent className="flex-1 p-0 relative bg-slate-50">
             <AttendanceMap
-              attendance={filteredAttendance}
+              attendance={attendanceData}
               selectedAttendance={selectedAttendance}
               onSelectAttendance={setSelectedAttendance}
             />
@@ -287,7 +330,7 @@ export default function Attendance() {
               <div className="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-gray-200/50 text-sm max-w-[280px] animate-in fade-in slide-in-from-bottom-2">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-8 w-8 border border-gray-100">
-                    <AvatarImage src={getEmployee(selectedAttendance.employeeId)?.avatar} />
+                    <AvatarImage src={selectedAttendance.employees?.avatar} />
                     <AvatarFallback>{selectedAttendance.employeeName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>

@@ -14,6 +14,11 @@ export interface AttendanceRecord {
     lng: number;
     address: string;
   } | null;
+  employees?: {
+    name: string;
+    avatar: string;
+    department: string;
+  };
 }
 
 interface AttendanceMapProps {
