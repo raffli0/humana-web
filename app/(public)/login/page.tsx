@@ -95,8 +95,8 @@ export default function LoginPage() {
                     </blockquote>
                     <div className="flex items-center gap-3 pt-2">
                         <div>
-                            <div className="font-semibold text-sm">Ateph Bauhaus</div>
-                            <div className="text-xs text-white/60">HR Business Partner, PT Global Inovasi</div>
+                            <div className="font-semibold text-sm">Sofa Nursofa</div>
+                            <div className="text-xs text-white/60">Wakil Kepala Sekolah, Raudhatul Atfal Ar-Rahmah</div>
                         </div>
                     </div>
                 </div>
