@@ -8,14 +8,29 @@ interface LocationPickerMapProps {
     lng: number | null;
     radius: number;
     onLocationChange: (lat: number, lng: number) => void;
+    onAddressChange: (address: string) => void;
 }
 
-export default function LocationPickerMap({ lat, lng, radius, onLocationChange }: LocationPickerMapProps) {
+export default function LocationPickerMap({ lat, lng, radius, onLocationChange, onAddressChange }: LocationPickerMapProps) {
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
     const markerRef = useRef<any>(null);
     const circleRef = useRef<any>(null);
+
+    const reverseGeocode = useCallback(async (newLat: number, newLng: number) => {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${newLat}&lon=${newLng}&addressdetails=1`
+            );
+            const data = await response.json();
+            if (data && data.display_name) {
+                onAddressChange(data.display_name);
+            }
+        } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+        }
+    }, [onAddressChange]);
 
     const updateMapElements = useCallback((L: any, newLat: number, newLng: number) => {
         if (!mapInstanceRef.current) return;
@@ -51,6 +66,7 @@ export default function LocationPickerMap({ lat, lng, radius, onLocationChange }
             markerRef.current.on('dragend', (e: any) => {
                 const pos = e.target.getLatLng();
                 onLocationChange(pos.lat, pos.lng);
+                reverseGeocode(pos.lat, pos.lng);
             });
         }
 
@@ -87,6 +103,7 @@ export default function LocationPickerMap({ lat, lng, radius, onLocationChange }
 
         map.on('click', (e: any) => {
             onLocationChange(e.latlng.lat, e.latlng.lng);
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
         });
 
         if (lat && lng) {
@@ -153,6 +170,7 @@ export default function LocationPickerMap({ lat, lng, radius, onLocationChange }
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition((pos) => {
                             onLocationChange(pos.coords.latitude, pos.coords.longitude);
+                            reverseGeocode(pos.coords.latitude, pos.coords.longitude);
                             if (mapInstanceRef.current) {
                                 mapInstanceRef.current.flyTo([pos.coords.latitude, pos.coords.longitude], 16);
                             }

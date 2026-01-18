@@ -74,6 +74,14 @@ export class SupabaseSettingsRepository implements ISettingsRepository {
         if (error) throw error;
     }
 
+    async updatePosition(id: string, updates: Partial<Position>): Promise<void> {
+        const { error } = await supabase
+            .from("positions")
+            .update(updates)
+            .eq("id", id);
+        if (error) throw error;
+    }
+
     async deletePosition(id: string): Promise<void> {
         const { error } = await supabase.from("positions").delete().eq("id", id);
         if (error) throw error;

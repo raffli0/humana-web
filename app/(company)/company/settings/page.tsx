@@ -10,6 +10,7 @@ import {
     Trash2,
     Loader2,
     Save,
+    Coins,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -34,6 +35,140 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { useSettingsViewModel } from "@/src/presentation/hooks/useSettingsViewModel";
 import LocationPickerMap from "./LocationPickerMap";
+import { Position } from "@/src/domain/company/ISettingsRepository";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface PositionPayrollCardProps {
+    pos: Position;
+    onUpdate: (id: string, updates: Partial<Position>) => Promise<void>;
+}
+
+function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
+    const [salary, setSalary] = useState(pos.base_salary?.toString() || "");
+    const [transport, setTransport] = useState(pos.transport_allowance?.toString() || "");
+    const [meal, setMeal] = useState(pos.meal_allowance?.toString() || "");
+    const [isSaving, setIsSaving] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await onUpdate(pos.id, {
+                base_salary: parseFloat(salary) || 0,
+                transport_allowance: parseFloat(transport) || 0,
+                meal_allowance: parseFloat(meal) || 0,
+            });
+            setHasChanges(false);
+        } catch (error) {
+            console.error("Failed to save payroll:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const total = (parseFloat(salary) || 0) + (parseFloat(transport) || 0) + (parseFloat(meal) || 0);
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+        >
+            <Card className="border-slate-200/60 shadow-none bg-white hover:border-indigo-200 transition-all group overflow-hidden">
+                <div className={`h-1 transition-colors ${hasChanges ? "bg-amber-400" : "bg-slate-100 group-hover:bg-indigo-400"}`}></div>
+                <CardHeader className="p-5 pb-2">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-bold tracking-tight text-slate-800">
+                            {pos.name}
+                        </CardTitle>
+                        <Badge variant="outline" className="text-[10px] font-mono border-slate-100 text-slate-400">
+                            POS-{pos.id.slice(0, 4)}
+                        </Badge>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-5 pt-3 space-y-6">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Base Salary</Label>
+                            <div className="relative group/input">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold bg-slate-50 h-full flex items-center px-2 border-r rounded-l-md group-focus-within/input:text-indigo-600 transition-colors">IDR</span>
+                                <Input
+                                    type="number"
+                                    className="h-10 text-sm pl-16 font-medium border-slate-200 focus-visible:ring-indigo-500"
+                                    value={salary}
+                                    placeholder="0"
+                                    onChange={(e) => {
+                                        setSalary(e.target.value);
+                                        setHasChanges(true);
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transport</Label>
+                                <div className="relative">
+                                    <Input
+                                        type="number"
+                                        className="h-9 text-xs border-slate-200 bg-slate-50/30 focus-visible:ring-indigo-500"
+                                        value={transport}
+                                        placeholder="0"
+                                        onChange={(e) => {
+                                            setTransport(e.target.value);
+                                            setHasChanges(true);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Meal</Label>
+                                <div className="relative">
+                                    <Input
+                                        type="number"
+                                        className="h-9 text-xs border-slate-200 bg-slate-50/30 focus-visible:ring-indigo-500"
+                                        value={meal}
+                                        placeholder="0"
+                                        onChange={(e) => {
+                                            setMeal(e.target.value);
+                                            setHasChanges(true);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-dashed border-slate-100 flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Monthly</span>
+                            <span className="text-sm font-bold text-indigo-600">IDR {total.toLocaleString()}</span>
+                        </div>
+                        <AnimatePresence>
+                            {hasChanges && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                >
+                                    <Button
+                                        size="sm"
+                                        className="h-9 px-4 text-xs gap-2 font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                        Save
+                                    </Button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </CardContent>
+            </Card>
+        </motion.div>
+    );
+}
 
 export default function CompanySettingsPage() {
     const {
@@ -48,6 +183,7 @@ export default function CompanySettingsPage() {
         deletePosition,
         updateLocationSettings,
         saveLocationSettings,
+        updatePositionPayroll,
     } = useSettingsViewModel();
 
     // Dialog local states
@@ -59,6 +195,10 @@ export default function CompanySettingsPage() {
 
     const handleLocationChange = useCallback((lat: number, lng: number) => {
         updateLocationSettings({ office_latitude: lat, office_longitude: lng });
+    }, [updateLocationSettings]);
+
+    const handleAddressChange = useCallback((address: string) => {
+        updateLocationSettings({ office_address: address });
     }, [updateLocationSettings]);
 
     if (loading) {
@@ -86,6 +226,9 @@ export default function CompanySettingsPage() {
                     </TabsTrigger>
                     <TabsTrigger value="location" className="gap-2">
                         <MapPin className="h-4 w-4" /> Office Location
+                    </TabsTrigger>
+                    <TabsTrigger value="payroll" className="gap-2">
+                        <Coins className="h-4 w-4" /> Payroll Settings
                     </TabsTrigger>
                 </TabsList>
 
@@ -335,10 +478,63 @@ export default function CompanySettingsPage() {
                                     lng={settings.office_longitude}
                                     radius={settings.office_radius_meters || 100}
                                     onLocationChange={handleLocationChange}
+                                    onAddressChange={handleAddressChange}
                                 />
                             </CardContent>
                         </Card>
                     </div>
+                </TabsContent>
+
+                {/* Payroll Tab */}
+                <TabsContent value="payroll" className="space-y-6">
+                    <Card className="border-none shadow-sm ring-1 ring-gray-200">
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Coins className="h-5 w-5" /> Position Payroll Configuration
+                            </CardTitle>
+                            <CardDescription>
+                                Set standard base salary and allowances for each role. (Amounts in local currency)
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {departments.length === 0 ? (
+                                <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                                    <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-sm font-medium text-slate-500">
+                                        No departments found. Create departments first to manage payroll by position.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-10">
+                                    {departments.map((dept) => {
+                                        const deptPositions = positions.filter(p => p.department_id === dept.id);
+                                        if (deptPositions.length === 0) return null;
+
+                                        return (
+                                            <div key={dept.id} className="space-y-5">
+                                                <div className="flex items-center gap-3">
+                                                    <Badge className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-indigo-100 px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm">
+                                                        {dept.name}
+                                                    </Badge>
+                                                    <div className="h-px flex-1 bg-gradient-to-r from-indigo-50 to-transparent"></div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+                                                    {deptPositions.map((pos) => (
+                                                        <PositionPayrollCard
+                                                            key={pos.id}
+                                                            pos={pos}
+                                                            onUpdate={updatePositionPayroll}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
         </main>

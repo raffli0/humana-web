@@ -95,6 +95,16 @@ export function useSettingsViewModel(repository: ISettingsRepository = settingsR
         setSettings(prev => ({ ...prev, ...updates }));
     }, []);
 
+    const updatePositionPayroll = async (positionId: string, updates: Partial<Position>) => {
+        try {
+            await repository.updatePosition(positionId, updates);
+            setPositions(prev => prev.map(p => p.id === positionId ? { ...p, ...updates } : p));
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
     const saveLocationSettings = async () => {
         if (!companyId) return;
         setSaving(true);
@@ -124,6 +134,7 @@ export function useSettingsViewModel(repository: ISettingsRepository = settingsR
         deletePosition,
         updateLocationSettings,
         saveLocationSettings,
+        updatePositionPayroll,
         refresh: fetchData
     };
 }

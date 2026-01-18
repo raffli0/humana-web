@@ -18,6 +18,9 @@ export interface Position {
     name: string;
     department_id: string | null;
     company_id: string;
+    base_salary: number | null;
+    transport_allowance: number | null;
+    meal_allowance: number | null;
 }
 
 export interface ISettingsRepository {
@@ -28,5 +31,6 @@ export interface ISettingsRepository {
     deleteDepartment(id: string): Promise<void>;
     getPositions(companyId: string): Promise<Position[]>;
     addPosition(companyId: string, name: string, departmentId?: string): Promise<void>;
+    updatePosition(id: string, updates: Partial<Position>): Promise<void>;
     deletePosition(id: string): Promise<void>;
 }
