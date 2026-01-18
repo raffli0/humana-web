@@ -48,7 +48,7 @@ import {
   Area,
 } from "recharts";
 
-import { supabase } from "../../../utils/supabase/client";
+import { supabase } from "../../../../src/infrastructure/supabase/client";
 
 const payrollData = [
   { month: "Jan", gross: 26000000, tax: 4000000, net: 22000000 },

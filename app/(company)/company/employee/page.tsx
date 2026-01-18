@@ -25,7 +25,9 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 
-import { supabase } from "../../../utils/supabase/client";
+import { authService } from "@/src/infrastructure/auth/authService";
+import { useEmployeeViewModel } from "@/src/presentation/hooks/useEmployeeViewModel";
+import { Employee } from "@/src/domain/employee/employee";
 
 interface Department {
   id: string;
@@ -48,14 +50,20 @@ function generateToken(): string {
 }
 
 export default function Employees() {
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    employees,
+    departments,
+    positions,
+    loading,
+    isSubmitting: viewModelSubmitting,
+    updateEmployee: vmUpdateEmployee,
+    inviteEmployee: vmInviteEmployee,
+    setEmployees
+  } = useEmployeeViewModel();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [invitationLink, setInvitationLink] = useState<string | null>(null);
 
   // Invite form state
@@ -66,51 +74,7 @@ export default function Employees() {
   const [viewEmployee, setViewEmployee] = useState<any>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  async function fetchData() {
-    setLoading(true);
-
-    // Get company_id from profile
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("company_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.company_id) {
-      // Fetch employees
-      const { data: empData } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('company_id', profile.company_id);
-      if (empData) setEmployees(empData);
-
-      // Fetch departments
-      const { data: deptData } = await supabase
-        .from("departments")
-        .select("*")
-        .eq("company_id", profile.company_id)
-        .order("name");
-      if (deptData) setDepartments(deptData);
-
-      // Fetch positions
-      const { data: posData } = await supabase
-        .from("positions")
-        .select("*")
-        .eq("company_id", profile.company_id)
-        .order("name");
-      if (posData) setPositions(posData);
-    }
-
-    setLoading(false);
-  }
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleInviteEmployee(e: React.FormEvent) {
     e.preventDefault();
@@ -121,36 +85,27 @@ export default function Employees() {
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .single();
-
+      const profile = await authService.getCurrentProfile();
       if (!profile?.company_id) throw new Error("No company associated with your account");
 
       const token = generateToken();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
 
-      const { error } = await supabase
-        .from("invitations")
-        .insert({
-          email: email,
-          full_name: fullName,
-          company_id: profile.company_id,
-          role: "employee",
-          token: token,
-          invited_by: user.id,
-          expires_at: expiresAt.toISOString(),
-          department_id: inviteDeptId || null,
-          position_id: invitePosId || null,
-        });
-
-      if (error) throw error;
+      await vmInviteEmployee({
+        email: email,
+        full_name: fullName,
+        company_id: profile.company_id,
+        role: "employee",
+        token: token,
+        invited_by: user.id,
+        expires_at: expiresAt.toISOString(),
+        department_id: inviteDeptId || null,
+        position_id: invitePosId || null,
+      });
 
       const link = `${window.location.origin}/activate-account?token=${token}`;
       setInvitationLink(link);
@@ -173,26 +128,16 @@ export default function Employees() {
     if (!viewEmployee) return;
 
     try {
-      const { error } = await supabase
-        .from('employees')
-        .update({
-          name: viewEmployee.name,
-          phone: viewEmployee.phone,
-          department: viewEmployee.department,
-          position: viewEmployee.position,
-          status: viewEmployee.status
-        })
-        .eq('id', viewEmployee.id);
-
-      if (error) throw error;
-
-      // Update local state
-      setEmployees(employees.map(emp =>
-        emp.id === viewEmployee.id ? viewEmployee : emp
-      ));
+      await vmUpdateEmployee({
+        id: viewEmployee.id,
+        name: viewEmployee.name,
+        phone: viewEmployee.phone,
+        department: viewEmployee.department,
+        position: viewEmployee.position,
+        status: viewEmployee.status
+      });
 
       setIsEditing(false);
-      // alert("Employee updated successfully");
     } catch (err: any) {
       alert(err.message || "Failed to update employee");
     }
@@ -206,12 +151,12 @@ export default function Employees() {
 
   // Filter positions by selected department
   const filteredPositions = inviteDeptId
-    ? positions.filter((p) => p.department_id === inviteDeptId)
+    ? positions.filter((p: any) => p.department_id === inviteDeptId)
     : positions;
 
-  const departmentFilters = ["All", ...new Set(employees.map((e) => e.department).filter(Boolean))];
+  const departmentFilters = ["All", ...new Set(employees.map((e: any) => e.department).filter(Boolean) as string[])];
 
-  const filteredEmployees = employees.filter((emp) => {
+  const filteredEmployees = employees.filter((emp: Employee) => {
     const matchesSearch =
       emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -513,14 +458,14 @@ export default function Employees() {
 
           {/* Employees Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredEmployees.map((employee) => (
+            {filteredEmployees.map((employee: Employee) => (
               <Card key={employee.id} className="group hover:shadow-md transition-all duration-200 border-none shadow-sm ring-1 ring-gray-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center">
                     <Avatar className="h-20 w-20 ring-4 ring-slate-50 mb-4">
-                      <AvatarImage src={employee.avatar} alt={employee.name} />
+                      <AvatarImage src={employee.avatar || undefined} alt={employee.name} />
                       <AvatarFallback className="text-lg bg-indigo-100 text-indigo-700 font-medium">
-                        {employee.name?.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
+                        {employee.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
 

@@ -7,77 +7,69 @@ import { Eye, EyeOff, Loader2, Smartphone } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { supabase } from "@/app/utils/supabase/client";
+import { Card, CardContent } from "@/app/components/ui/card";
+import { authService } from "@/src/infrastructure/auth/authService";
 
 export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [employeeBlocked, setEmployeeBlocked] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
         setEmployeeBlocked(false);
 
-        const email = (e.target as any).email.value;
-        const password = (e.target as any).password.value;
+        const form = e.target as HTMLFormElement;
+        const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+        const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data, error: authError } = await authService.signIn(email, password);
+            if (authError) throw authError;
 
-        if (error) {
-            alert(error.message);
-            setIsLoading(false);
-            return;
-        }
-
-        if (data.user) {
-            // Fetch profile for role check
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("role, status")
-                .eq("id", data.user.id)
-                .single();
+            // Get profile to check role and redirect
+            const profile = await authService.getCurrentProfile();
 
             if (!profile) {
-                alert("Account not found. Please contact your administrator.");
-                await supabase.auth.signOut();
-                setIsLoading(false);
+                setError("Account not found. Please contact your administrator.");
+                await authService.signOut();
                 return;
             }
 
             if (profile.status && profile.status !== "active") {
-                alert("Your account is inactive. Please contact your administrator.");
-                await supabase.auth.signOut();
-                setIsLoading(false);
+                setError("Your account is inactive. Please contact your administrator.");
+                await authService.signOut();
                 return;
             }
 
             // Block employees from web dashboard
             if (profile.role === "employee") {
-                await supabase.auth.signOut();
+                await authService.signOut();
                 setEmployeeBlocked(true);
-                setIsLoading(false);
                 return;
             }
 
             // Route based on role
             if (profile.role === "super_admin") {
                 router.push("/platform/dashboard");
-            } else {
+            } else if (profile.company_id) {
                 router.push("/company/dashboard");
+            } else {
+                router.push("/landing-page");
             }
+        } catch (err: any) {
+            setError(err.message || "Failed to login. Please check your credentials.");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
     return (
         <div className="w-full min-h-screen grid lg:grid-cols-2">
-
             {/* Left Panel: Branding */}
             <div className="hidden lg:flex flex-col justify-between bg-[#0C212F] p-10 text-white">
                 <div>
@@ -113,9 +105,7 @@ export default function LoginPage() {
             {/* Right Panel: Form */}
             <div className="flex items-center justify-center p-6 bg-slate-50 dark:bg-black">
                 <div className="mx-auto w-full max-w-[350px] space-y-6">
-
                     {employeeBlocked ? (
-                        // Employee blocked message
                         <div className="space-y-6 text-center">
                             <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                                 <Smartphone className="h-8 w-8 text-blue-600" />
@@ -151,7 +141,6 @@ export default function LoginPage() {
                             </Button>
                         </div>
                     ) : (
-                        // Login form
                         <>
                             <div className="flex flex-col space-y-2 text-center">
                                 <h1 className="text-2xl font-semibold tracking-tight">
@@ -162,53 +151,63 @@ export default function LoginPage() {
                                 </p>
                             </div>
 
+                            {error && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
                             <Card className="border-0 shadow-none bg-transparent">
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            placeholder="name@company.com"
-                                            required
-                                            type="email"
-                                            className="bg-white"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <Label htmlFor="password">Password</Label>
-                                            <Link
-                                                href="#"
-                                                className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-muted-foreground"
-                                            >
-                                                Forgot your password?
-                                            </Link>
-                                        </div>
-                                        <div className="relative">
+                                <CardContent className="p-0">
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
                                             <Input
-                                                id="password"
-                                                type={showPassword ? "text" : "password"}
+                                                id="email"
+                                                name="email"
+                                                placeholder="name@company.com"
                                                 required
-                                                className="pr-10 bg-white"
+                                                type="email"
+                                                className="bg-white"
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                            >
-                                                {showPassword ? (
-                                                    <EyeOff className="h-4 w-4" />
-                                                ) : (
-                                                    <Eye className="h-4 w-4" />
-                                                )}
-                                            </button>
                                         </div>
-                                    </div>
-                                    <Button type="submit" className="w-full bg-[#0C212F] hover:bg-[#0C212F]/90" disabled={isLoading}>
-                                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Sign In
-                                    </Button>
-                                </form>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="password">Password</Label>
+                                                <Link
+                                                    href="#"
+                                                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-muted-foreground"
+                                                >
+                                                    Forgot your password?
+                                                </Link>
+                                            </div>
+                                            <div className="relative">
+                                                <Input
+                                                    id="password"
+                                                    name="password"
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    className="pr-10 bg-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <Button type="submit" className="w-full bg-[#0C212F] hover:bg-[#0C212F]/90" disabled={isLoading}>
+                                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Sign In
+                                        </Button>
+                                    </form>
+                                </CardContent>
                             </Card>
 
                             <p className="px-8 text-center text-sm text-muted-foreground">

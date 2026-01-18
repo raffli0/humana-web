@@ -3,45 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabase/client";
-
+import { authService } from "@/src/infrastructure/auth/authService";
+import { companyNav as navItems } from "@/src/presentation/navigation/companyNav";
+import { platformNav as platformNavItems } from "@/src/presentation/navigation/platformNav";
+import { Profile } from "@/src/domain/employee/profile";
 import { cn } from "../ui/utils";
-
 import * as Tooltip from "@radix-ui/react-tooltip";
-
 import { ProfileDropdown } from "./profile-dropdown";
-
-import {
-  LayoutDashboard,
-  Users,
-  ClipboardList,
-  Wallet,
-  CalendarCheck,
-  Briefcase,
-  Building2,
-  BarChart3,
-  Cloud,
-  Shield,
-  Settings,
-} from "lucide-react";
-
-const navItems = [
-  { name: "Dashboard", href: "/company/dashboard", icon: LayoutDashboard },
-  { name: "Employees", href: "/company/employee", icon: Users },
-  { name: "Attendance", href: "/company/attendance", icon: CalendarCheck },
-  { name: "Payroll", href: "/company/payroll", icon: Wallet },
-  { name: "Leave Requests", href: "/company/leave", icon: ClipboardList },
-  { name: "Recruitments", href: "/company/recruitment", icon: Briefcase },
-];
-
-const platformNavItems = [
-  { name: "Dashboard", href: "/platform/dashboard", icon: LayoutDashboard },
-  { name: "Companies", href: "/platform/companies", icon: Building2 },
-  { name: "Analytics", href: "/platform/analytics", icon: BarChart3 },
-  { name: "Infrastructure", href: "/platform/infrastructure", icon: Cloud },
-  { name: "System Settings", href: "/platform/settings", icon: Settings },
-  { name: "Admin Roles", href: "/platform/admin-roles", icon: Shield },
-];
 
 
 export default function Navbar() {
@@ -57,20 +25,12 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("full_name, email")
-          .eq("id", user.id)
-          .single();
-
-        if (data) {
-          setProfile({
-            full_name: data.full_name || user.email?.split("@")[0] || "User",
-            email: data.email || user.email || "",
-          });
-        }
+      const profile = await authService.getCurrentProfile();
+      if (profile) {
+        setProfile({
+          full_name: profile.full_name,
+          email: profile.email,
+        });
       }
     }
     fetchProfile();
@@ -158,7 +118,7 @@ export default function Navbar() {
             onProfile={() => console.log("Profile")}
             onSettings={() => router.push(isPlatform ? "/platform/settings" : "/company/settings")}
             onLogout={async () => {
-              await supabase.auth.signOut();
+              await authService.signOut();
               router.push("/login");
             }}
           />

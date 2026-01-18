@@ -8,35 +8,34 @@ import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 
-import { supabase } from "../../../utils/supabase/client";
+import { authService } from "@/src/infrastructure/auth/authService";
+import { useRecruitmentViewModel } from "@/src/presentation/hooks/useRecruitmentViewModel";
+import { JobPost, Candidate } from "@/src/domain/recruitment/recruitment";
 
 export default function Recruitment() {
-    const [recruitments, setRecruitments] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        jobPosts: recruitments,
+        candidates,
+        summary,
+        loading,
+        updateStatus,
+        refresh
+    } = useRecruitmentViewModel();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
-
-    useEffect(() => {
-        async function fetchRecruitments() {
-            setLoading(true);
-            const { data } = await supabase.from('recruitments').select('*');
-            if (data) setRecruitments(data);
-            setLoading(false);
-        }
-        fetchRecruitments();
-    }, []);
 
     const statuses = ["All", "Open", "Closed"];
 
     const filteredJobs = recruitments.filter(job => {
         const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            job.department.toLowerCase().includes(searchQuery.toLowerCase());
+            (job.department || "").toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = filterStatus === "All" || job.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
 
-    const totalApplicants = recruitments.reduce((sum, job) => sum + job.applicants, 0);
-    const openPositions = recruitments.filter(j => j.status === "Open").length;
+    const totalApplicants = summary.total_candidates;
+    const openPositions = summary.open_jobs;
     const closedPositions = recruitments.filter(j => j.status === "Closed").length;
 
     return (
@@ -163,20 +162,20 @@ export default function Recruitment() {
                                         </div>
                                         <div className="flex items-center gap-1.5 text-gray-500 bg-slate-50 px-2.5 py-1.5 rounded-md">
                                             <Calendar className="w-3.5 h-3.5" />
-                                            <span>Posted {job.posted}</span>
+                                            <span>Posted {new Date(job.created_at).toLocaleDateString()}</span>
                                         </div>
                                     </div>
 
                                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className="flex -space-x-2">
-                                                {[...Array(Math.min(3, job.applicants))].map((_, i) => (
+                                                {candidates.filter(c => c.job_id === job.id).slice(0, 3).map((_, i) => (
                                                     <div key={i} className="h-7 w-7 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[9px] font-bold text-slate-500">
-                                                        ?
+                                                        {(candidates.filter(c => c.job_id === job.id)[i].full_name || "C").charAt(0)}
                                                     </div>
                                                 ))}
                                             </div>
-                                            <p className="text-xs text-muted-foreground font-medium">{job.applicants} Applicants</p>
+                                            <p className="text-xs text-muted-foreground font-medium">{candidates.filter(c => c.job_id === job.id).length} Applicants</p>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button variant="outline" size="sm" className="h-8">Details</Button>

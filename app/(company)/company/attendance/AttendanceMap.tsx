@@ -2,36 +2,13 @@ import { useEffect, useRef, useCallback } from "react";
 import { MapPin, LocateFixed, Building2 } from "lucide-react";
 
 
-export interface AttendanceRecord {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  date: string;
-  checkIn: string | null;
-  checkOut: string | null;
-  status: string;
-  location: {
-    lat: number;
-    lng: number;
-    address: string;
-  } | null;
-  employees?: {
-    name: string;
-    avatar: string;
-    department: string;
-  };
-}
+import { AttendanceRecord, OfficeLocation } from "@/src/domain/attendance/attendance";
 
 interface AttendanceMapProps {
   attendance: AttendanceRecord[];
   selectedAttendance: AttendanceRecord | null;
   onSelectAttendance: (attendance: AttendanceRecord) => void;
-  officeLocation?: {
-    lat: number;
-    lng: number;
-    radius: number;
-    address?: string | null;
-  } | null;
+  officeLocation?: OfficeLocation | null;
 }
 
 export default function AttendanceMap({ attendance, selectedAttendance, onSelectAttendance, officeLocation }: AttendanceMapProps) {
@@ -140,7 +117,7 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
             <div style="padding: 8px;">
               <strong>${record.employeeName}</strong><br/>
               <span style="color: #666;">${record.location.address}</span><br/>
-              <span style="color: #666;">Check In: ${record.checkIn || '-'}</span><br/>
+              <span style="color: #666;">Check In: ${record.check_in || '-'}</span><br/>
               <span style="color: #666;">Status: ${record.status}</span>
             </div>
           `);

@@ -68,7 +68,7 @@ export function ProfileDropdown({
           align="end"
           sideOffset={8}
           className={cn(
-            "z-50 min-w-[220px] rounded-xl border border-slate-800",
+            "z-[9999] min-w-[220px] rounded-xl border border-slate-800",
             "bg-slate-900 text-slate-100 shadow-xl p-1",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in data-[state=closed]:fade-out",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Navbar from "../../components/ui/navbar"
-import { supabase } from "../../utils/supabase/client"
+import { authService } from "@/src/infrastructure/auth/authService";
 
 export default function PlatformLayout({
     children,
@@ -16,26 +16,21 @@ export default function PlatformLayout({
 
     useEffect(() => {
         async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser()
+            try {
+                const profile = await authService.getCurrentProfile();
 
-            if (!user) {
-                router.push("/login")
-                return
+                if (!profile || profile.role !== "super_admin") {
+                    router.push("/company/dashboard")
+                    return
+                }
+
+                setAuthorized(true)
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                router.push("/login");
+            } finally {
+                setLoading(false)
             }
-
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("role")
-                .eq("id", user.id)
-                .single()
-
-            if (!profile || profile.role !== "super_admin") {
-                router.push("/company/dashboard")
-                return
-            }
-
-            setAuthorized(true)
-            setLoading(false)
         }
 
         checkAuth()

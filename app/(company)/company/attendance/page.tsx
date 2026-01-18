@@ -15,84 +15,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
-import AttendanceMap, { AttendanceRecord } from "./AttendanceMap";
+import AttendanceMap from "./AttendanceMap";
 import { cn } from "@/lib/utils";
-import { supabase } from "../../../utils/supabase/client";
+import { useAttendanceViewModel } from "@/src/presentation/hooks/useAttendanceViewModel";
+
 
 export default function Attendance() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [attendanceData, setAttendanceData] = useState<any[]>([]);
-  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [officeLocation, setOfficeLocation] = useState<{ lat: number; lng: number; radius: number; address: string | null } | null>(null);
+  const {
+    date,
+    setDate,
+    attendanceData,
+    selectedAttendance,
+    setSelectedAttendance,
+    loading,
+    officeLocation,
+    stats
+  } = useAttendanceViewModel();
 
-  const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-
-  useEffect(() => {
-    async function fetchData() {
-      if (!formattedDate) return;
-
-      setLoading(true);
-
-      // Fetch company settings
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("company_id")
-          .eq("id", user.id)
-          .single();
-
-        if (profile?.company_id) {
-          const { data: settings } = await supabase
-            .from("company_settings")
-            .select("office_latitude, office_longitude, office_radius_meters, office_address")
-            .eq("company_id", profile.company_id)
-            .single();
-
-          if (settings && settings.office_latitude && settings.office_longitude) {
-            setOfficeLocation({
-              lat: settings.office_latitude,
-              lng: settings.office_longitude,
-              radius: settings.office_radius_meters || 100,
-              address: settings.office_address
-            });
-          }
-        }
-      }
-
-      // Fetch Attendance
-      const { data } = await supabase
-        .from('attendance')
-        .select('*, employees(name, avatar, department)')
-        .eq('date', formattedDate);
-
-      if (data) {
-        // Transform data to match AttendanceRecord interface
-        const transformedData = data.map((record: any) => ({
-          ...record,
-          employeeName: record.employees?.name || record.employee_name || "Unknown",
-          checkIn: record.check_in,
-          checkOut: record.check_out,
-          employeeId: record.employee_id,
-        }));
-        setAttendanceData(transformedData);
-
-        if (transformedData.length > 0 && !selectedAttendance) {
-          // Optional: select first record by default or leave null
-        }
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, [formattedDate]);
-
-  const stats = {
-    present: attendanceData.filter(a => a.status === "Present").length,
-    late: attendanceData.filter(a => a.status === "Late").length,
-    absent: attendanceData.filter(a => a.status === "Absent").length,
-    total: attendanceData.length
-  };
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -301,7 +240,7 @@ export default function Attendance() {
                             <Clock className="w-3 h-3 text-indigo-400" /> Check In
                           </div>
                           <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
-                            {record.checkIn || "--:--"}
+                            {record.check_in || "--:--"}
                           </div>
                         </div>
                         <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
@@ -309,7 +248,7 @@ export default function Attendance() {
                             <Clock className="w-3 h-3 text-orange-400" /> Check Out
                           </div>
                           <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
-                            {record.checkOut || "--:--"}
+                            {record.check_out || "--:--"}
                           </div>
                         </div>
                       </div>
@@ -362,13 +301,13 @@ export default function Attendance() {
                 <div className="flex items-start gap-3">
                   <Avatar className="h-8 w-8 border border-gray-100">
                     <AvatarImage src={selectedAttendance.employees?.avatar} />
-                    <AvatarFallback>{selectedAttendance.employeeName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{(selectedAttendance.employeeName || "U").charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold text-gray-900 line-clamp-1">{selectedAttendance.location.address}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="h-5 text-[10px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-default px-1.5 rounded-md">
-                        Checked In: {selectedAttendance.checkIn}
+                        Checked In: {selectedAttendance.check_in}
                       </Badge>
                     </div>
                   </div>

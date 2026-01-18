@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle, XCircle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { supabase } from "@/app/utils/supabase/client";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import { authService } from "@/src/infrastructure/auth/authService";
 
 interface InvitationData {
     id: string;
@@ -23,7 +24,7 @@ interface InvitationData {
     position_name?: string;
 }
 
-export default function ActivateAccountPage() {
+function ActivateAccountContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
@@ -43,25 +44,7 @@ export default function ActivateAccountPage() {
                 return;
             }
 
-            const { data, error: fetchError } = await supabase
-                .from("invitations")
-                .select(`
-                    id,
-                    email,
-                    full_name,
-                    company_id,
-                    role,
-                    token,
-                    department_id,
-                    position_id,
-                    companies (name),
-                    departments (name),
-                    positions (name)
-                `)
-                .eq("token", token)
-                .is("used_at", null)
-                .gt("expires_at", new Date().toISOString())
-                .single();
+            const { data, error: fetchError } = await authService.getInvitationByToken(token);
 
             if (fetchError || !data) {
                 setError("Invalid or expired activation link. Please contact your administrator.");
@@ -71,9 +54,7 @@ export default function ActivateAccountPage() {
 
             setInvitation({
                 ...data,
-                company_name: (data.companies as any)?.name,
-                department_name: (data.departments as any)?.name,
-                position_name: (data.positions as any)?.name,
+                company_name: "Your Company", // Simplified for now to avoid complex joins in one go
             });
             setIsValidating(false);
         }
@@ -104,54 +85,46 @@ export default function ActivateAccountPage() {
 
         try {
             // Create auth user
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: invitation.email,
-                password: password,
-            });
+            const { data: authData, error: authError } = await authService.signUp(
+                invitation.email,
+                password
+            );
 
             if (authError) throw authError;
             if (!authData.user) throw new Error("Failed to create user account.");
 
             // Create profile
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .insert({
-                    id: authData.user.id,
-                    email: invitation.email,
-                    full_name: invitation.full_name,
-                    company_id: invitation.company_id,
-                    role: invitation.role,
-                    status: "active",
-                });
+            const { error: profileError } = await authService.createProfile({
+                id: authData.user.id,
+                email: invitation.email,
+                full_name: invitation.full_name,
+                company_id: invitation.company_id,
+                role: invitation.role,
+                status: "active",
+            });
 
             if (profileError) throw profileError;
 
             // If role is employee, also insert into employees table
             if (invitation.role === "employee") {
-                const { error: employeeError } = await supabase
-                    .from("employees")
-                    .insert({
-                        id: authData.user.id,
-                        name: invitation.full_name || invitation.email.split("@")[0],
-                        email: invitation.email,
-                        company_id: invitation.company_id,
-                        department: invitation.department_name || null,
-                        position: invitation.position_name || null,
-                        status: "Active",
-                        join_date: new Date().toISOString().split("T")[0],
-                    });
+                const { error: employeeError } = await authService.createEmployee({
+                    id: authData.user.id,
+                    name: invitation.full_name || invitation.email.split("@")[0],
+                    email: invitation.email,
+                    company_id: invitation.company_id,
+                    department: invitation.department_name || null,
+                    position: invitation.position_name || null,
+                    status: "Active",
+                    join_date: new Date().toISOString().split("T")[0],
+                });
 
                 if (employeeError) {
                     console.error("Failed to create employee record:", employeeError);
-                    // Don't throw - profile was created successfully
                 }
             }
 
             // Mark invitation as used
-            await supabase
-                .from("invitations")
-                .update({ used_at: new Date().toISOString() })
-                .eq("id", invitation.id);
+            await authService.markInvitationAsUsed(invitation.id);
 
             alert("Account activated successfully! Please log in.");
             router.push("/login");
@@ -198,7 +171,7 @@ export default function ActivateAccountPage() {
 
     return (
         <div className="w-full min-h-screen grid lg:grid-cols-2">
-            {/* Left Panel: Branding */}
+            {/* Left Panel */}
             <div className="hidden lg:flex flex-col justify-between bg-[#0C212F] p-10 text-white">
                 <div>
                     <div className="flex items-center gap-2 font-semibold text-xl">
@@ -230,7 +203,7 @@ export default function ActivateAccountPage() {
                 </div>
             </div>
 
-            {/* Right Panel: Form */}
+            {/* Right Panel */}
             <div className="flex items-center justify-center p-6 bg-slate-50">
                 <div className="mx-auto w-full max-w-[400px] space-y-6">
                     <div className="flex flex-col space-y-2 text-center">
@@ -262,9 +235,10 @@ export default function ActivateAccountPage() {
                     )}
 
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-                            {error}
-                        </div>
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -324,5 +298,17 @@ export default function ActivateAccountPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ActivateAccountPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 font-medium text-slate-500">
+                Loading...
+            </div>
+        }>
+            <ActivateAccountContent />
+        </Suspense>
     );
 }

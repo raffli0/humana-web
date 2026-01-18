@@ -35,42 +35,40 @@ import {
   DialogTrigger,
 } from "../../../components/ui/dialog";
 
-import { supabase } from "../../../utils/supabase/client";
+import { authService } from "@/src/infrastructure/auth/authService";
+import { useLeaveViewModel } from "@/src/presentation/hooks/useLeaveViewModel";
+import { LeaveRequest } from "@/src/domain/leave/leave";
 
-export default function LeaveRequest() {
-  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function LeaveManagement() {
+  const {
+    leaveRequests,
+    loading,
+    isSubmitting,
+    updateStatus,
+    refresh
+  } = useLeaveViewModel();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const { data: leaveData } = await supabase
-        .from('leave_requests')
-        .select('*, employees(name, avatar)')
-        .order('request_date', { ascending: false });
-      if (leaveData) setLeaveRequests(leaveData);
-
-      const { data: employeesData } = await supabase.from('employees').select('*');
-      if (employeesData) setEmployees(employeesData);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
 
   const statuses = ["All", "Pending", "Approved", "Rejected"];
 
   const filteredRequests = leaveRequests.filter((request) => {
-    const employeeName = request.employees?.name || request.employee_name || "";
+    const employeeName = request.employees?.name || "Unknown";
     const matchesSearch =
       employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.type.toLowerCase().includes(searchQuery.toLowerCase());
+      request.leave_type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       filterStatus === "All" || request.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  const getDaysBetween = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    const diff = Math.abs(e.getTime() - s.getTime());
+    return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -89,9 +87,7 @@ export default function LeaveRequest() {
   const approvedCount = leaveRequests.filter((r) => r.status === "Approved").length;
   const rejectedCount = leaveRequests.filter((r) => r.status === "Rejected").length;
 
-  const getEmployee = (id: string) => {
-    return employees.find((e) => e.id === id);
-  };
+
 
   return (
     <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
@@ -206,9 +202,8 @@ export default function LeaveRequest() {
                 </TableHeader>
                 <TableBody>
                   {filteredRequests.map((request) => {
-                    // eslint-disable-next-line
-                    const employee = request.employees || getEmployee(request.employee_id);
-                    const empName = employee?.name || request.employee_name || "Unknown";
+                    const employee = request.employees;
+                    const empName = employee?.name || "Unknown";
                     const empAvatar = employee?.avatar;
 
                     return (
@@ -227,16 +222,16 @@ export default function LeaveRequest() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-normal bg-slate-50">
-                            {request.type}
+                            {request.leave_type}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-gray-600">
-                          {request.days} days
+                          {getDaysBetween(request.start_date, request.end_date)} days
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col text-xs text-gray-500">
-                            <span className="font-medium text-gray-700">{request.start_date || request.startDate}</span>
-                            <span>to {request.end_date || request.endDate}</span>
+                            <span className="font-medium text-gray-700">{request.start_date}</span>
+                            <span>to {request.end_date}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -263,11 +258,11 @@ export default function LeaveRequest() {
                                 <div className="grid gap-4 py-4">
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <span className="text-right font-medium text-muted-foreground">Type</span>
-                                    <span className="col-span-3 font-medium">{request.type}</span>
+                                    <span className="col-span-3 font-medium">{request.leave_type}</span>
                                   </div>
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <span className="text-right font-medium text-muted-foreground">Duration</span>
-                                    <span className="col-span-3">{request.days} days ({request.start_date || request.startDate} - {request.end_date || request.endDate})</span>
+                                    <span className="col-span-3">{getDaysBetween(request.start_date, request.end_date)} days ({request.start_date} - {request.end_date})</span>
                                   </div>
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <span className="text-right font-medium text-muted-foreground">Reason</span>
@@ -283,7 +278,7 @@ export default function LeaveRequest() {
                                   </div>
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <span className="text-right font-medium text-muted-foreground">Requested</span>
-                                    <span className="col-span-3 text-sm text-gray-500">{request.request_date || request.requestDate}</span>
+                                    <span className="col-span-3 text-sm text-gray-500">{new Date(request.created_at).toLocaleDateString()}</span>
                                   </div>
                                 </div>
                               </DialogContent>
@@ -305,7 +300,7 @@ export default function LeaveRequest() {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction className="bg-red-600 hover:bg-red-700">Reject</AlertDialogAction>
+                                      <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => updateStatus(request.id, "Rejected")}>Reject</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
@@ -320,12 +315,12 @@ export default function LeaveRequest() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Approve Request</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Approve {request.days} days of {request.type} for {empName}?
+                                        Approve {getDaysBetween(request.start_date, request.end_date)} days of {request.leave_type} for {empName}?
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction className="bg-green-600 hover:bg-green-700">Approve</AlertDialogAction>
+                                      <AlertDialogAction className="bg-green-600 hover:bg-green-700" onClick={() => updateStatus(request.id, "Approved")}>Approve</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>

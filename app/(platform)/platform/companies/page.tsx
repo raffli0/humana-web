@@ -42,7 +42,7 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "../../../components/ui/dialog"
-import { supabase } from "../../../utils/supabase/client"
+import { supabase } from "../../../../src/infrastructure/supabase/client"
 
 interface Company {
     id: string

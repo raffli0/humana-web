@@ -15,61 +15,40 @@ import {
     TableHeader,
     TableRow,
 } from "../../../components/ui/table";
-import { supabase } from "../../../utils/supabase/client";
+import { authService } from "@/src/infrastructure/auth/authService";
+import { usePayrollViewModel } from "@/src/presentation/hooks/usePayrollViewModel";
+import { Payslip } from "@/src/domain/payroll/payroll";
 
 export default function Payroll() {
-    const [payrollData, setPayrollData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        payslips: payrollData,
+        loading,
+        calculateSummary,
+        refresh
+    } = usePayrollViewModel();
+
+    const summary = calculateSummary();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
-
-    useEffect(() => {
-        async function fetchPayroll() {
-            setLoading(true);
-            const { data } = await supabase
-                .from('payroll')
-                .select('*, employees(name, avatar, position)')
-                .order('date', { ascending: false });
-
-            if (data) {
-                // Transform data for easier usage
-                const transformed = data.map((item: any) => ({
-                    ...item,
-                    employee: item.employees?.name || "Unknown",
-                    role: item.employees?.position || "Staff", // Fallback or use DB role
-                    avatar: item.employees?.avatar
-                }));
-                setPayrollData(transformed);
-            }
-            setLoading(false);
-        }
-        fetchPayroll();
-    }, []);
 
     const statuses = ["All", "Paid", "Pending", "Processing", "Failed"];
 
     const filteredPayroll = payrollData.filter((item) => {
-        const matchesSearch = item.employee.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.role.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch =
+            (item.employees?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.employees?.position || "").toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = filterStatus === "All" || item.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
 
-    // Calculate Stats
-    const parseSalary = (salaryStr: string) => {
-        if (!salaryStr) return 0;
-        // improved parsing for IDR (removes non-digits) and standard currency
-        // This assumes no decimals for IDR, which is standard for salaries
-        return parseInt(salaryStr.replace(/\D/g, "") || "0");
-    };
-
-    const totalPayroll = payrollData.reduce((sum, item) => sum + parseSalary(item.salary), 0);
+    const totalPayroll = summary.net_payout;
     const paidCount = payrollData.filter(i => i.status === "Paid").length;
     const paidRate = payrollData.length ? Math.round((paidCount / payrollData.length) * 100) : 0;
     const pendingAmount = payrollData
-        .filter(i => i.status === "Pending" || i.status === "Processing")
-        .reduce((sum, item) => sum + parseSalary(item.salary), 0);
-    const pendingCount = payrollData.filter(i => i.status === "Pending" || i.status === "Processing").length;
+        .filter(i => i.status === "Pending" || i.status === "Processing" || i.status === "Draft")
+        .reduce((sum, item) => sum + (item.net_salary || 0), 0);
+    const pendingCount = payrollData.filter(i => i.status === "Pending" || i.status === "Processing" || i.status === "Draft").length;
     const avgSalary = payrollData.length ? Math.round(totalPayroll / payrollData.length) : 0;
 
     const formatCurrency = (val: number) => {
@@ -239,16 +218,16 @@ export default function Payroll() {
                                         <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={item.avatar} />
-                                                    <AvatarFallback>{item.employee.charAt(0)}</AvatarFallback>
+                                                    <AvatarImage src={item.employees?.avatar} />
+                                                    <AvatarFallback>{(item.employees?.name || "U").charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                                <span className="font-medium text-gray-900">{item.employee}</span>
+                                                <span className="font-medium text-gray-900">{item.employees?.name}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-gray-500">{item.role}</TableCell>
-                                        <TableCell className="text-gray-500">{item.date}</TableCell>
-                                        <TableCell className="text-gray-500">{item.method}</TableCell>
-                                        <TableCell className="font-medium text-gray-900">{item.salary}</TableCell>
+                                        <TableCell className="text-gray-500">{item.employees?.position}</TableCell>
+                                        <TableCell className="text-gray-500">{new Date(item.created_at).toLocaleDateString()}</TableCell>
+                                        <TableCell className="text-gray-500">Bank Transfer</TableCell>
+                                        <TableCell className="font-medium text-gray-900">{formatCurrency(item.net_salary)}</TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className={getStatusColor(item.status)}>
                                                 {item.status}

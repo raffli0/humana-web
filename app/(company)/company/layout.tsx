@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Navbar from "../../components/ui/navbar"
-import { supabase } from "../../utils/supabase/client"
+import { authService } from "@/src/infrastructure/auth/authService";
 
 export default function CompanyLayout({
     children,
@@ -17,44 +17,35 @@ export default function CompanyLayout({
 
     useEffect(() => {
         async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser()
+            try {
+                const profile = await authService.getCurrentProfile();
 
-            if (!user) {
-                router.push("/login")
-                return
+                if (!profile) {
+                    router.push("/login")
+                    return
+                }
+
+                if (profile.role === "super_admin") {
+                    router.push("/platform/dashboard")
+                    return
+                }
+
+                if (profile.role === "employee") {
+                    // Employee is mobile only
+                    router.push("/login")
+                    return
+                }
+
+                // If we reach here, user is company_admin or hr_staff
+                setAuthorized(true)
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                router.push("/login");
+            } finally {
+                setLoading(false)
             }
-
-            // Fetch profile for role check
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("role")
-                .eq("id", user.id)
-                .single()
-
-            if (!profile) {
-                // If no profile, maybe it's a new registration or system error
-                router.push("/login")
-                return
-            }
-
-            if (profile.role === "super_admin") {
-                router.push("/platform/dashboard")
-                return
-            }
-
-            if (profile.role === "employee") {
-                // Employee is mobile only
-                router.push("/login") // Or a specific "Access Denied" page
-                return
-            }
-
-            // If we reach here, user is company_admin or hr_staff
-            setAuthorized(true)
-            setLoading(false)
         }
 
-        // skip check for local dev if needed, or implement properly
-        // For now, let's implement properly as requested
         checkAuth()
     }, [router])
 
