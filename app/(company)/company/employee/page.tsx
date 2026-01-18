@@ -339,10 +339,25 @@ export default function Employees() {
                   </div>
                   <div className="space-y-2">
                     <Label>Position</Label>
-                    <Input
-                      value={viewEmployee.position || ""}
-                      onChange={(e) => setViewEmployee({ ...viewEmployee, position: e.target.value })}
-                    />
+                    <Select
+                      value={positions.find(p => p.name === viewEmployee.position)?.id || ""}
+                      onValueChange={(val) => {
+                        const posName = positions.find(p => p.id === val)?.name || viewEmployee.position;
+                        setViewEmployee({ ...viewEmployee, position: posName });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={viewEmployee.position || "Select..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions
+                          .filter(p => !viewEmployee.department ||
+                            p.department_id === departments.find(d => d.name === viewEmployee.department)?.id)
+                          .map((pos) => (
+                            <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
