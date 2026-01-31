@@ -6,6 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
+import { id } from "date-fns/locale"
 import {
   DayPicker,
   getDefaultClassNames,
@@ -31,6 +32,7 @@ function Calendar({
 
   return (
     <DayPicker
+      locale={id}
       showOutsideDays={showOutsideDays}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",

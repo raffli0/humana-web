@@ -62,7 +62,6 @@ export function useSettingsViewModel(repository: ISettingsRepository = settingsR
     };
 
     const deleteDepartment = async (id: string) => {
-        if (!confirm("Delete this department? Positions in this department will be unlinked.")) return;
         try {
             await repository.deleteDepartment(id);
             await fetchData();
@@ -82,7 +81,6 @@ export function useSettingsViewModel(repository: ISettingsRepository = settingsR
     };
 
     const deletePosition = async (id: string) => {
-        if (!confirm("Delete this position?")) return;
         try {
             await repository.deletePosition(id);
             await fetchData();

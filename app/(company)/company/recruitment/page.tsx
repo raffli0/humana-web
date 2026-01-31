@@ -46,7 +46,7 @@ export default function Recruitment() {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Recruitment</h1>
                     <p className="text-muted-foreground mt-1">Manage job postings and applicant tracking.</p>
                 </div>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2 shadow-sm">
+                <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
                     <Plus className="w-4 h-4" /> Post New Job
                 </Button>
             </div>

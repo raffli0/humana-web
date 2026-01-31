@@ -7,12 +7,14 @@ export class GetAttendanceUseCase {
     async execute(date: string, companyId: string): Promise<{
         records: AttendanceRecord[];
         officeLocation: OfficeLocation | null;
+        departments: string[];
     }> {
-        const [records, officeLocation] = await Promise.all([
+        const [records, officeLocation, departments] = await Promise.all([
             this.attendanceRepo.getAttendanceByDate(date),
-            this.attendanceRepo.getOfficeLocation(companyId)
+            this.attendanceRepo.getOfficeLocation(companyId),
+            this.attendanceRepo.getDepartments(companyId)
         ]);
 
-        return { records, officeLocation };
+        return { records, officeLocation, departments };
     }
 }

@@ -9,6 +9,9 @@ export interface Employee {
     avatar: string | null;
     join_date: string | null;
     company_id: string;
+    shift_id?: string | null;
+    employee_code?: string | null;
+    basic_salary?: number | null;
 }
 
 export interface Department {

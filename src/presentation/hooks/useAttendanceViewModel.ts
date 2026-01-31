@@ -11,6 +11,9 @@ export function useAttendanceViewModel(initialDate: Date = new Date()) {
     const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
     const [loading, setLoading] = useState(true);
     const [officeLocation, setOfficeLocation] = useState<OfficeLocation | null>(null);
+    const [departments, setDepartments] = useState<string[]>([]);
+    const [selectedDepartment, setSelectedDepartment] = useState<string>("All Departments");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const getAttendanceUseCase = new GetAttendanceUseCase(attendanceRepository);
 
@@ -22,10 +25,11 @@ export function useAttendanceViewModel(initialDate: Date = new Date()) {
             const profile = await authService.getCurrentProfile();
             if (profile?.company_id) {
                 const formattedDate = format(date, "yyyy-MM-dd");
-                const { records, officeLocation: office } = await getAttendanceUseCase.execute(formattedDate, profile.company_id);
+                const { records, officeLocation: office, departments: depts } = await getAttendanceUseCase.execute(formattedDate, profile.company_id);
 
                 setAttendanceData(records);
                 setOfficeLocation(office);
+                setDepartments(depts);
             }
         } catch (error) {
             console.error("Failed to fetch attendance:", error);
@@ -38,6 +42,17 @@ export function useAttendanceViewModel(initialDate: Date = new Date()) {
         fetchData();
     }, [fetchData]);
 
+    const filteredAttendanceData = attendanceData.filter(record => {
+        const matchesDepartment = selectedDepartment === "All Departments" ||
+            (record.employees?.department === selectedDepartment);
+
+        const employeeName = record.employees?.name || record.employeeName || "";
+        const matchesSearch = employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            record.employee_id?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesDepartment && matchesSearch;
+    });
+
     const stats = {
         present: attendanceData.filter(a => a.status === "Present").length,
         late: attendanceData.filter(a => a.status === "Late").length,
@@ -48,11 +63,17 @@ export function useAttendanceViewModel(initialDate: Date = new Date()) {
     return {
         date,
         setDate,
-        attendanceData,
+        attendanceData: filteredAttendanceData,
+        allAttendanceData: attendanceData,
         selectedAttendance,
         setSelectedAttendance,
         loading,
         officeLocation,
+        departments,
+        selectedDepartment,
+        setSelectedDepartment,
+        searchQuery,
+        setSearchQuery,
         stats,
         refresh: fetchData
     };

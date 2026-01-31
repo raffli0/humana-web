@@ -9,9 +9,10 @@ interface AttendanceMapProps {
   selectedAttendance: AttendanceRecord | null;
   onSelectAttendance: (attendance: AttendanceRecord) => void;
   officeLocation?: OfficeLocation | null;
+  date?: Date;
 }
 
-export default function AttendanceMap({ attendance, selectedAttendance, onSelectAttendance, officeLocation }: AttendanceMapProps) {
+export default function AttendanceMap({ attendance, selectedAttendance, onSelectAttendance, officeLocation, date }: AttendanceMapProps) {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -111,14 +112,25 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
           iconAnchor: [isSelected ? 20 : 15, isSelected ? 20 : 15] // Center the anchor
         });
 
+        const fallbackUrl = record.fallback_photo_url || '';
         const marker = L.marker([record.location.lat, record.location.lng], { icon })
           .addTo(mapInstanceRef.current)
           .bindPopup(`
-            <div style="padding: 8px;">
-              <strong>${record.employeeName}</strong><br/>
-              <span style="color: #666;">${record.location.address}</span><br/>
-              <span style="color: #666;">Check In: ${record.check_in || '-'}</span><br/>
-              <span style="color: #666;">Status: ${record.status}</span>
+            <div style="padding: 8px; width: 220px;">
+              <div style="margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee;">
+                <img src="${record.photo_url}" style="width: 100%; height: 120px; object-fit: cover;" onerror="
+                  const fallback = '${fallbackUrl}';
+                  if (fallback && this.src !== fallback) {
+                    this.src = fallback;
+                  } else {
+                    this.src = 'https://placehold.co/400x400?text=No+Photo';
+                  }
+                "/>
+              </div>
+              <strong style="display: block; font-size: 14px; margin-bottom: 4px;">${record.employeeName}</strong>
+              <div style="color: #666; font-size: 12px; margin-bottom: 2px;">📍 ${record.location.address}</div>
+              <div style="color: #666; font-size: 12px; margin-bottom: 2px;">🕒 Masuk: ${record.check_in || '-'}</div>
+              <div style="color: #666; font-size: 12px;">📊 Status: <span style="font-weight: 500;">${record.status === 'Present' ? 'Hadir' : record.status === 'Late' ? 'Terlambat' : record.status === 'Absent' ? 'Alpa' : record.status}</span></div>
             </div>
           `);
 
@@ -212,12 +224,6 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
     //   maxZoom: 20
 
     mapInstanceRef.current = map;
-
-    // Force a resize calculation
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
-
     updateMarkers();
   }, [updateMarkers]); // Added updateMarkers as dependency
 
@@ -257,14 +263,57 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
   }, [initMap]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+
     if (mapInstanceRef.current) {
-      // Ensure map resizes correctly when data changes or container resizes
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
+      // Ensure map resizes correctly when data changes, component mounts, or container resizes
+      timer = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          updateMarkers();
+        }
       }, 100);
-      updateMarkers();
     }
-  }, [updateMarkers, attendance]); // Re-run when attendance data changes
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [updateMarkers, attendance, date]); // Re-run when attendance data or map instance changes
+
+  useEffect(() => {
+    if (mapInstanceRef.current && selectedAttendance?.location?.lat && selectedAttendance?.location?.lng) {
+      mapInstanceRef.current.flyTo([selectedAttendance.location.lat, selectedAttendance.location.lng], 16, {
+        duration: 1.5
+      });
+
+      // Also open the popup for the selected marker
+      const L = (window as any).L;
+      if (L) {
+        const fallbackUrl = selectedAttendance.fallback_photo_url || '';
+        L.popup()
+          .setLatLng([selectedAttendance.location.lat, selectedAttendance.location.lng])
+          .setContent(`
+            <div style="padding: 8px; width: 220px;">
+              <div style="margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee;">
+                <img src="${selectedAttendance.photo_url}" style="width: 100%; height: 120px; object-fit: cover;" onerror="
+                  const fallback = '${fallbackUrl}';
+                  if (fallback && this.src !== fallback) {
+                    this.src = fallback;
+                  } else {
+                    this.src = 'https://placehold.co/400x400?text=No+Photo';
+                  }
+                "/>
+              </div>
+              <strong style="display: block; font-size: 14px; margin-bottom: 4px;">${selectedAttendance.employeeName}</strong>
+              <div style="color: #666; font-size: 12px; margin-bottom: 2px;">📍 ${selectedAttendance.location.address}</div>
+              <div style="color: #666; font-size: 12px; margin-bottom: 2px;">🕒 Masuk: ${selectedAttendance.check_in || '-'}</div>
+              <div style="color: #666; font-size: 12px;">📊 Status: <span style="font-weight: 500;">${selectedAttendance.status === 'Present' ? 'Hadir' : selectedAttendance.status === 'Late' ? 'Terlambat' : selectedAttendance.status === 'Absent' ? 'Alpa' : selectedAttendance.status}</span></div>
+            </div>
+          `)
+          .openOn(mapInstanceRef.current);
+      }
+    }
+  }, [selectedAttendance]);
 
   return (
     <div className="relative">
@@ -272,7 +321,7 @@ export default function AttendanceMap({ attendance, selectedAttendance, onSelect
         ref={mapRef}
         className="w-full h-[400px] rounded-lg border border-gray-200"
       />
-      {attendance.filter(a => a.location).length === 0 && !officeLocation && (
+      {attendance.filter(a => a.location?.lat && a.location?.lng).length === 0 && !officeLocation && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
           <div className="text-center">
             <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />

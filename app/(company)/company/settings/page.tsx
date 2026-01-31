@@ -12,7 +12,18 @@ import {
     Save,
     Coins,
 } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
+
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
@@ -59,8 +70,9 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                 meal_allowance: parseFloat(meal) || 0,
             });
             setHasChanges(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save payroll:", error);
+            alert(`Failed to save payroll: ${error?.message || JSON.stringify(error) || "Unknown error"}`);
         } finally {
             setIsSaving(false);
         }
@@ -177,6 +189,7 @@ export default function CompanySettingsPage() {
         settings,
         loading,
         saving,
+        error,
         addDepartment,
         deleteDepartment,
         addPosition,
@@ -192,6 +205,9 @@ export default function CompanySettingsPage() {
     const [newDeptName, setNewDeptName] = useState("");
     const [newPosName, setNewPosName] = useState("");
     const [newPosDeptId, setNewPosDeptId] = useState<string>("");
+
+    // Delete Confirmation State
+    const [deleteTarget, setDeleteTarget] = useState<{ type: 'department' | 'position', id: string, name: string } | null>(null);
 
     const handleLocationChange = useCallback((lat: number, lng: number) => {
         updateLocationSettings({ office_latitude: lat, office_longitude: lng });
@@ -218,6 +234,16 @@ export default function CompanySettingsPage() {
                     <p className="text-muted-foreground mt-1">Manage departments, positions, and office location.</p>
                 </div>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative flex items-center gap-2" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span className="block sm:inline">{error}</span>
+                </div>
+            )}
+
 
             <Tabs defaultValue="organization" className="space-y-6">
                 <TabsList className="bg-white border">
@@ -291,7 +317,7 @@ export default function CompanySettingsPage() {
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                    onClick={() => deleteDepartment(dept.id)}
+                                                    onClick={() => setDeleteTarget({ type: 'department', id: dept.id, name: dept.name })}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -383,7 +409,7 @@ export default function CompanySettingsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                        onClick={() => deletePosition(pos.id)}
+                                                        onClick={() => setDeleteTarget({ type: 'position', id: pos.id, name: pos.name })}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
@@ -537,6 +563,34 @@ export default function CompanySettingsPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
+            <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the <strong>{deleteTarget?.name}</strong> {deleteTarget?.type} and
+                            automatically remove it from any assigned employees. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                            onClick={async () => {
+                                if (!deleteTarget) return;
+                                if (deleteTarget.type === 'department') {
+                                    await deleteDepartment(deleteTarget.id);
+                                } else {
+                                    await deletePosition(deleteTarget.id);
+                                }
+                                setDeleteTarget(null);
+                            }}
+                        >
+                            Delete {deleteTarget?.type === 'department' ? 'Department' : 'Position'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     );
 }

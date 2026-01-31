@@ -7,6 +7,8 @@ export interface AttendanceRecord {
     check_out: string | null;
     status: 'Present' | 'Late' | 'Absent';
     date: string;
+    photo_url?: string;
+    fallback_photo_url?: string;
     location?: {
         lat: number;
         lng: number;

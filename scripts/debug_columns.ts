@@ -7,12 +7,11 @@ const supabaseKey = "sb_publishable_YdoBJ9r2kBi6kEgVF3LNtg_a39wBdvl"; // Using t
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkColumns() {
-    const { data, error } = await supabase.from('attendance').select('*').limit(1);
-    if (data && data.length > 0) {
-        console.log("Attendance Record Structure:", Object.keys(data[0]));
-        console.log("First Record:", data[0]);
+    const { data, error } = await supabase.from('positions').select('id, name, base_salary, transport_allowance, meal_allowance').limit(1);
+    if (error) {
+        console.log("Error querying columns:", error);
     } else {
-        console.log("No data or error:", error);
+        console.log("Success! Columns found. Data:", data);
     }
 }
 

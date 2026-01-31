@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { id } from "date-fns/locale";
 import {
   Users,
   Briefcase,
@@ -49,6 +50,7 @@ import {
 } from "recharts";
 
 import { supabase } from "../../../../src/infrastructure/supabase/client";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 const payrollData = [
   { month: "Jan", gross: 26000000, tax: 4000000, net: 22000000 },
@@ -82,38 +84,43 @@ export default function Dashboard() {
       setLoading(true);
 
       const { data: { user } } = await supabase.auth.getUser();
+
       if (user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        if (profileData) setProfile(profileData);
+        // Parallel fetch for maximum speed 🚀
+        const today = format(new Date(), "yyyy-MM-dd");
+
+        const promises = [
+          // 1. Profile
+          supabase.from('profiles').select('*, companies(name)').eq('id', user.id).single(),
+          // 2. Employees
+          supabase.from('employees').select('*'),
+          // 3. Attendance
+          supabase.from('attendance').select('*, employees(name, avatar)').eq('date', today),
+          // 4. Leave Requests
+          supabase.from('leave_requests').select('*, employees(name, avatar)').order('request_date', { ascending: false }),
+          // 5. Recruitments
+          supabase.from('recruitments').select('*')
+        ];
+
+        try {
+          const [
+            profileRes,
+            employeesRes,
+            attendanceRes,
+            leaveRes,
+            recruitmentRes
+          ] = await Promise.all(promises);
+
+          if (profileRes.data) setProfile(profileRes.data);
+          if (employeesRes.data) setEmployees(employeesRes.data as any[]);
+          if (attendanceRes.data) setAttendance(attendanceRes.data as any[]);
+          if (leaveRes.data) setLeaveRequests(leaveRes.data as any[]);
+          if (recruitmentRes.data) setRecruitments(recruitmentRes.data as any[]);
+
+        } catch (error) {
+          console.error("Dashboard fetch error:", error);
+        }
       }
-
-      // Fetch Employees
-      const { data: employeesData } = await supabase.from('employees').select('*');
-      if (employeesData) setEmployees(employeesData);
-
-      // Fetch Attendance (for today)
-      // Use local date to match Attendance page logic (client timezone)
-      const today = format(new Date(), "yyyy-MM-dd");
-      const { data: attendanceData } = await supabase
-        .from('attendance')
-        .select('*, employees(name, avatar)')
-        .eq('date', today);
-      if (attendanceData) setAttendance(attendanceData);
-
-      // Fetch pending leave requests
-      const { data: leaveData } = await supabase
-        .from('leave_requests')
-        .select('*, employees(name, avatar)')
-        .order('request_date', { ascending: false });
-      if (leaveData) setLeaveRequests(leaveData);
-
-      // Fetch recruitments
-      const { data: recruitmentData } = await supabase.from('recruitments').select('*');
-      if (recruitmentData) setRecruitments(recruitmentData);
 
       setLoading(false);
     }
@@ -137,11 +144,19 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Hello, {profile?.full_name || profile?.email?.split('@')[0] || "User"}!
+            {loading ? (
+              <Skeleton className="h-9 w-64 bg-slate-200" />
+            ) : (
+              profile?.companies?.name || "Perusahaan Saya"
+            )}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, here&apos;s your company overview.
-          </p>
+          <div className="text-muted-foreground mt-1">
+            {loading ? (
+              <Skeleton className="h-5 w-96 mt-2 bg-slate-200" />
+            ) : (
+              `Halo ${profile?.full_name || "Pengguna"}, berikut ringkasan perusahaan Anda.`
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" className="rounded-full">
@@ -152,7 +167,7 @@ export default function Dashboard() {
             <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
           </Button>
           <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
-            <CalendarIcon className="mr-2 h-4 w-4" /> Download Report
+            <CalendarIcon className="mr-2 h-4 w-4" /> Unduh Laporan
           </Button>
         </div>
       </div>
@@ -166,30 +181,30 @@ export default function Dashboard() {
           {/* Stats Cards Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="Total Employees"
+              title="Total Karyawan"
               value={employees.length.toString()}
-              change="+12% from last month"
+              change="+12% dari bulan lalu"
               icon={Users}
               trend="up"
             />
             <StatsCard
-              title="Present Today"
+              title="Hadir Hari Ini"
               value={presentToday.toString()}
-              change={`${employees.length > 0 ? ((presentToday / employees.length) * 100).toFixed(0) : 0}% attendance rate`}
+              change={`${employees.length > 0 ? ((presentToday / employees.length) * 100).toFixed(0) : 0}% tingkat kehadiran`}
               icon={Activity}
               trend="neutral"
             />
             <StatsCard
-              title="Pending Leaves"
+              title="Menunggu Persetujuan"
               value={pendingLeaves.toString()}
-              change={`${pendingLeaves} requests waiting`}
+              change={`${pendingLeaves} permintaan menunggu`}
               icon={FileText}
               trend="down"
             />
             <StatsCard
-              title="Open Positions"
+              title="Posisi Terbuka"
               value={openPositions.toString()}
-              change="Hiring is active"
+              change="Perekrutan aktif"
               icon={Briefcase}
               trend="up"
             />
@@ -204,13 +219,13 @@ export default function Dashboard() {
               <Card className="border-none shadow-sm ring-1 ring-gray-200">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <CardTitle className="text-lg font-semibold">Payroll Analytics</CardTitle>
-                    <CardDescription>Monthly gross vs net salary distribution</CardDescription>
+                    <CardTitle className="text-lg font-semibold">Analisis Penggajian</CardTitle>
+                    <CardDescription>Distribusi gaji kotor vs bersih bulanan</CardDescription>
                   </div>
                   <Tabs defaultValue="year" className="w-[200px]">
                     <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="month">Month</TabsTrigger>
-                      <TabsTrigger value="year">Year</TabsTrigger>
+                      <TabsTrigger value="month">Bulan</TabsTrigger>
+                      <TabsTrigger value="year">Tahun</TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </CardHeader>
@@ -255,23 +270,23 @@ export default function Dashboard() {
               <Card className="border-none shadow-sm ring-1 ring-gray-200">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">Recent Leave Requests</CardTitle>
-                    <CardDescription>Review and manage employee time off</CardDescription>
+                    <CardTitle className="text-lg">Permintaan Cuti Terbaru</CardTitle>
+                    <CardDescription>Tinjau dan kelola cuti karyawan</CardDescription>
                   </div>
                   <Button variant="ghost" className="text-sm font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer" onClick={() => { }}>
-                    View All
+                    Lihat Semua
                   </Button>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Dates</TableHead>
-                        <TableHead>Duration</TableHead>
+                        <TableHead>Karyawan</TableHead>
+                        <TableHead>Tipe</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Durasi</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -291,18 +306,18 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell>{leave.type}</TableCell>
                           <TableCell className="text-muted-foreground">{leave.start_date || leave.startDate}</TableCell>
-                          <TableCell>{leave.days} days</TableCell>
+                          <TableCell>{leave.days} hari</TableCell>
                           <TableCell>
                             <Badge
                               variant="secondary"
-                              className={`${leave.status === "Approved"
+                              className={`${leave.status === "Approved" || leave.status === "Disetujui"
                                 ? "bg-green-100 text-green-700 hover:bg-green-100"
-                                : leave.status === "Pending"
+                                : leave.status === "Pending" || leave.status === "Menunggu"
                                   ? "bg-amber-100 text-amber-700 hover:bg-amber-100"
                                   : "bg-red-100 text-red-700 hover:bg-red-100"
                                 }`}
                             >
-                              {leave.status}
+                              {leave.status === "Approved" ? "Disetujui" : leave.status === "Pending" ? "Menunggu" : leave.status === "Rejected" ? "Ditolak" : leave.status}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -327,7 +342,7 @@ export default function Dashboard() {
               <Card className="border-none shadow-sm ring-1 ring-gray-200">
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Department Capacity
+                    Kapasitas Departemen
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -348,20 +363,20 @@ export default function Dashboard() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-white">
                     <CreditCard className="h-5 w-5 opacity-80" />
-                    Payment Status
+                    Status Pembayaran
                   </CardTitle>
                   <CardDescription className="text-indigo-100">
-                    Next payroll disbursement
+                    Pembayaran gaji berikutnya
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mt-4">
                     <div className="text-3xl font-bold">Rp 124.500.999</div>
-                    <div className="text-indigo-100 text-sm mt-1">Scheduled for Feb 25, 2026</div>
+                    <div className="text-indigo-100 text-sm mt-1">Dijadwalkan untuk 25 Feb 2026</div>
                   </div>
                   <Separator className="my-6 bg-white/20" />
                   <div className="flex justify-between items-center text-sm">
-                    <span>Processing</span>
+                    <span>Memproses</span>
                     <span className="font-semibold">68%</span>
                   </div>
                   <Progress value={68} className="h-1.5 mt-2 bg-indigo-900/30" indicatorClassName="bg-white" />
@@ -371,16 +386,16 @@ export default function Dashboard() {
               {/* Activity / Notifications Generic */}
               <Card className="border-none shadow-sm ring-1 ring-gray-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">Today&apos;s Activity</CardTitle>
+                  <CardTitle className="text-lg">Aktivitas Hari Ini</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex gap-4 items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                       <div className="h-2 w-2 mt-2 rounded-full bg-indigo-500 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">New employee onboarding</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Sarah Johnson joined the Design team</p>
-                        <p className="text-[10px] text-gray-400 mt-2">2 hours ago</p>
+                        <p className="text-sm font-medium text-gray-900">Onboarding karyawan baru</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Sarah Johnson bergabung dengan tim Desain</p>
+                        <p className="text-[10px] text-gray-400 mt-2">2 jam lalu</p>
                       </div>
                     </div>
                   ))}

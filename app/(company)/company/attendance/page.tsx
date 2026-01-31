@@ -2,13 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { MapPin, Clock, Search, Download, Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { id } from "date-fns/locale";
+import { MapPin, Clock, Search, Download, Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownRight, Eye, FileImage } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avatar";
 import { Input } from "../../../components/ui/input";
 import { DatePicker } from "../../../components/ui/date-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../../components/ui/dialog";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,20 +38,28 @@ export default function Attendance() {
     setSelectedAttendance,
     loading,
     officeLocation,
-    stats
+    stats,
+    departments,
+    selectedDepartment,
+    setSelectedDepartment,
+    searchQuery,
+    setSearchQuery
   } = useAttendanceViewModel();
 
 
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "Present":
-        return { color: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: CheckCircle2 };
+      case "Hadir":
+        return { color: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: CheckCircle2, label: "Hadir" };
       case "Late":
-        return { color: "text-amber-700 bg-amber-50 border-amber-200", icon: AlertCircle };
+      case "Terlambat":
+        return { color: "text-amber-700 bg-amber-50 border-amber-200", icon: AlertCircle, label: "Terlambat" };
       case "Absent":
-        return { color: "text-rose-700 bg-rose-50 border-rose-200", icon: XCircle };
+      case "Alpa":
+        return { color: "text-rose-700 bg-rose-50 border-rose-200", icon: XCircle, label: "Alpa" };
       default:
-        return { color: "text-slate-700 bg-slate-50 border-slate-200", icon: AlertCircle };
+        return { color: "text-slate-700 bg-slate-50 border-slate-200", icon: AlertCircle, label: status };
     }
   };
 
@@ -51,8 +68,8 @@ export default function Attendance() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Attendance</h1>
-          <p className="text-muted-foreground mt-1">Monitor real-time employee attendance and location.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Absensi</h1>
+          <p className="text-muted-foreground mt-1">Pantau absensi dan lokasi karyawan secara real-time.</p>
         </div>
         <div className="flex items-center gap-2">
           <DatePicker date={date} setDate={setDate} />
@@ -70,7 +87,7 @@ export default function Attendance() {
         <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Total Present</span>
+              <span className="text-sm font-medium text-muted-foreground">Total Hadir</span>
               <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                 <ArrowUpRight className="h-3 w-3 mr-1" /> +4.2%
               </span>
@@ -91,14 +108,14 @@ export default function Attendance() {
         <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Late Arrivals</span>
+              <span className="text-sm font-medium text-muted-foreground">Terlambat</span>
               <span className="flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                 <ArrowDownRight className="h-3 w-3 mr-1" /> -1.2%
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-gray-900">{stats.late}</span>
-              <span className="text-sm text-gray-500">employees</span>
+              <span className="text-sm text-gray-500">karyawan</span>
             </div>
             <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
               <div
@@ -112,14 +129,14 @@ export default function Attendance() {
         <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Absent</span>
+              <span className="text-sm font-medium text-muted-foreground">Alpa</span>
               <span className="flex items-center text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
                 <ArrowUpRight className="h-3 w-3 mr-1" /> +2.1%
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-gray-900">{stats.absent}</span>
-              <span className="text-sm text-gray-500">employees</span>
+              <span className="text-sm text-gray-500">karyawan</span>
             </div>
             <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
               <div
@@ -132,13 +149,13 @@ export default function Attendance() {
 
         <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-indigo-50/50">
           <CardContent className="p-5 flex flex-col justify-center h-full">
-            <span className="text-sm font-medium text-indigo-600/70 uppercase tracking-wider">Attendance Rate</span>
+            <span className="text-sm font-medium text-indigo-600/70 uppercase tracking-wider">Tingkat Kehadiran</span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-4xl font-bold text-indigo-700">
                 {stats.total ? Math.round(((stats.present + stats.late) / stats.total) * 100) : 0}%
               </span>
             </div>
-            <p className="text-xs text-indigo-600/60 mt-2">Based on checked-in employees today</p>
+            <p className="text-xs text-indigo-600/60 mt-2">Berdasarkan karyawan check-in hari ini</p>
           </CardContent>
         </Card>
       </div>
@@ -148,26 +165,32 @@ export default function Attendance() {
         <Card className="xl:col-span-1 border-none shadow-sm ring-1 ring-gray-200 flex flex-col overflow-hidden h-full">
           <CardHeader className="pb-4 border-b border-gray-100 py-3 px-4 shrink-0 bg-white z-10">
             <div className="flex items-center justify-between mb-3">
-              <CardTitle className="text-base font-semibold">Employee List</CardTitle>
+              <CardTitle className="text-base font-semibold">Daftar Karyawan</CardTitle>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
-                    All Departments <ChevronDown className="ml-1 h-3 w-3" />
+                    {selectedDepartment === "All Departments" ? "Semua Departemen" : selectedDepartment} <ChevronDown className="ml-1 h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Engineering</DropdownMenuItem>
-                  <DropdownMenuItem>Design</DropdownMenuItem>
-                  <DropdownMenuItem>Marketing</DropdownMenuItem>
-                  <DropdownMenuItem>HR</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSelectedDepartment("All Departments")}>
+                    Semua Departemen
+                  </DropdownMenuItem>
+                  {departments.map((dept) => (
+                    <DropdownMenuItem key={dept} onClick={() => setSelectedDepartment(dept)}>
+                      {dept}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or ID..."
+                placeholder="Cari nama atau ID..."
                 className="pl-9 h-9 text-sm bg-slate-50 border-slate-200"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </CardHeader>
@@ -228,16 +251,53 @@ export default function Attendance() {
                             </div>
                           </div>
                         </div>
-                        <div className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 shadow-sm", statusConfig.color)}>
-                          <StatusIcon className="h-3 w-3" />
-                          {record.status}
+                        <div className="flex flex-col items-end gap-2">
+                          <div className={cn("px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 shadow-sm", statusConfig.color)}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig.label}
+                          </div>
+                          {record.status !== "Absent" && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                                  <FileImage className="h-3 w-3" /> Bukti Foto
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Bukti Absensi - {employeeName}</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4 flex flex-col items-center">
+                                  <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-100 shadow-inner bg-slate-50 flex items-center justify-center">
+                                    <img
+                                      src={record.photo_url}
+                                      alt="Bukti Absensi"
+                                      className="object-cover w-full h-full"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        if (record.fallback_photo_url && target.src !== record.fallback_photo_url) {
+                                          target.src = record.fallback_photo_url;
+                                        } else {
+                                          target.src = "https://placehold.co/400x400?text=Foto+Tidak+Ditemukan";
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="mt-4 w-full p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs space-y-1">
+                                    <p><span className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Waktu:</span> {record.check_in}</p>
+                                    <p><span className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Lokasi:</span> {record.location?.address}</p>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 mt-4 gap-2">
                         <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
                           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                            <Clock className="w-3 h-3 text-indigo-400" /> Check In
+                            <Clock className="w-3 h-3 text-indigo-400" /> Jam Masuk
                           </div>
                           <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
                             {record.check_in || "--:--"}
@@ -245,7 +305,7 @@ export default function Attendance() {
                         </div>
                         <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
                           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
-                            <Clock className="w-3 h-3 text-orange-400" /> Check Out
+                            <Clock className="w-3 h-3 text-orange-400" /> Jam Keluar
                           </div>
                           <div className="font-mono text-sm font-medium text-gray-700 pl-4.5">
                             {record.check_out || "--:--"}
@@ -261,8 +321,8 @@ export default function Attendance() {
                     <div className="bg-slate-50 p-3 rounded-full mb-3">
                       <Search className="h-5 w-5 text-slate-400" />
                     </div>
-                    <p className="text-sm font-medium text-gray-900">No records found</p>
-                    <p className="text-xs text-muted-foreground mt-1">Select a different date to view attendance.</p>
+                    <p className="text-sm font-medium text-gray-900">Tidak ada data ditemukan</p>
+                    <p className="text-xs text-muted-foreground mt-1">Pilih tanggal lain untuk melihat absensi.</p>
                   </div>
                 )}
               </div>
@@ -279,13 +339,13 @@ export default function Attendance() {
               </div>
               <div>
                 <CardTitle className="text-sm font-medium text-gray-900">
-                  {selectedAttendance ? `${selectedAttendance.employeeName}'s Location` : "Employee Locations"}
+                  {selectedAttendance ? `Lokasi ${selectedAttendance.employeeName}` : "Lokasi Karyawan"}
                 </CardTitle>
               </div>
             </div>
             {selectedAttendance?.location && (
               <Badge variant="outline" className="text-xs font-normal bg-slate-50">
-                Live Update
+                Langsung
               </Badge>
             )}
           </CardHeader>
@@ -295,6 +355,7 @@ export default function Attendance() {
               selectedAttendance={selectedAttendance}
               onSelectAttendance={setSelectedAttendance}
               officeLocation={officeLocation}
+              date={date}
             />
             {selectedAttendance?.location && (
               <div className="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-gray-200/50 text-sm max-w-[280px] animate-in fade-in slide-in-from-bottom-2">
@@ -307,7 +368,7 @@ export default function Attendance() {
                     <p className="font-semibold text-gray-900 line-clamp-1">{selectedAttendance.location.address}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="h-5 text-[10px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-default px-1.5 rounded-md">
-                        Checked In: {selectedAttendance.check_in}
+                        Masuk: {selectedAttendance.check_in}
                       </Badge>
                     </div>
                   </div>

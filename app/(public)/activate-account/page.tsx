@@ -9,6 +9,7 @@ import { Label } from "@/app/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { authService } from "@/src/infrastructure/auth/authService";
+import { supabase } from "@/src/infrastructure/supabase/client";
 
 interface InvitationData {
     id: string;
@@ -52,8 +53,23 @@ function ActivateAccountContent() {
                 return;
             }
 
+            let deptName = "";
+            let posName = "";
+
+            if (data.department_id) {
+                const { data: d } = await supabase.from('departments').select('name').eq('id', data.department_id).single();
+                if (d) deptName = d.name;
+            }
+
+            if (data.position_id) {
+                const { data: p } = await supabase.from('positions').select('name').eq('id', data.position_id).single();
+                if (p) posName = p.name;
+            }
+
             setInvitation({
                 ...data,
+                department_name: deptName,
+                position_name: posName,
                 company_name: "Your Company", // Simplified for now to avoid complex joins in one go
             });
             setIsValidating(false);
@@ -114,6 +130,8 @@ function ActivateAccountContent() {
                     company_id: invitation.company_id,
                     department: invitation.department_name || null,
                     position: invitation.position_name || null,
+                    department_id: invitation.department_id || null, // Link FK if exists
+                    position_id: invitation.position_id || null,     // Link FK if exists
                     status: "Active",
                     join_date: new Date().toISOString().split("T")[0],
                 });

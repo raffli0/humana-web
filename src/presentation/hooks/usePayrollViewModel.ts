@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { payrollRepository } from '../../infrastructure/supabase/SupabasePayrollRepository';
+import { employeeRepository } from '../../infrastructure/supabase/SupabaseEmployeeRepository';
 import { authService } from '../../infrastructure/auth/authService';
 import { GetPayslipsUseCase, UpdatePayslipStatusUseCase, CreatePayslipUseCase } from '../../application/payroll/PayrollUseCases';
+import { GeneratePayslipsUseCase } from '../../application/payroll/GeneratePayslipsUseCase';
 import { Payslip, PayrollSummary } from '../../domain/payroll/payroll';
 
 export function usePayrollViewModel() {
@@ -11,7 +13,7 @@ export function usePayrollViewModel() {
 
     const getPayslipsUseCase = new GetPayslipsUseCase(payrollRepository);
     const updatePayslipStatusUseCase = new UpdatePayslipStatusUseCase(payrollRepository);
-    const createPayslipUseCase = new CreatePayslipUseCase(payrollRepository);
+    const generatePayslipsUseCase = new GeneratePayslipsUseCase(payrollRepository, employeeRepository);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -42,6 +44,26 @@ export function usePayrollViewModel() {
         }
     };
 
+    const generatePayroll = async () => {
+        setIsSubmitting(true);
+        try {
+            const profile = await authService.getCurrentProfile();
+            if (profile?.company_id) {
+                // Generate for current month
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                await generatePayslipsUseCase.execute(profile.company_id, start, end);
+                await fetchData();
+            }
+        } catch (error) {
+            console.error("Failed to generate payroll:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const calculateSummary = useCallback((): PayrollSummary => {
         return payslips.reduce((acc, p) => ({
             total_base: acc.total_base + (p.basic_salary || 0),
@@ -64,6 +86,7 @@ export function usePayrollViewModel() {
         isSubmitting,
         updateStatus,
         calculateSummary,
-        refresh: fetchData
+        refresh: fetchData,
+        generatePayroll
     };
 }

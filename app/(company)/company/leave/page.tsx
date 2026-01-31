@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Search, Plus, FileText, Check, X, Clock, Eye } from "lucide-react";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Badge } from "../../../components/ui/badge";
@@ -49,9 +51,15 @@ export default function LeaveManagement() {
   } = useLeaveViewModel();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
-
-  const statuses = ["All", "Pending", "Approved", "Rejected"];
+  const [filterStatus, setFilterStatus] = useState("Semua");
+  const statuses = ["Semua", "Pending", "Approved", "Rejected"];
+  const statusLabels: Record<string, string> = {
+    "All": "Semua",
+    "Semua": "Semua",
+    "Pending": "Menunggu",
+    "Approved": "Disetujui",
+    "Rejected": "Ditolak"
+  };
 
   const filteredRequests = leaveRequests.filter((request) => {
     const employeeName = request.employees?.name || "Unknown";
@@ -59,7 +67,7 @@ export default function LeaveManagement() {
       employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.leave_type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
-      filterStatus === "All" || request.status === filterStatus;
+      filterStatus === "Semua" || request.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -94,11 +102,11 @@ export default function LeaveManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Leave Management</h1>
-          <p className="text-muted-foreground mt-1">Review and manage employee leave requests.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Manajemen Cuti</h1>
+          <p className="text-muted-foreground mt-1">Tinjau dan kelola permintaan cuti karyawan.</p>
         </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2 shadow-sm">
-          <Plus className="w-4 h-4" /> New Request
+        <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+          <Plus className="w-4 h-4" /> Buat Permintaan
         </Button>
       </div>
 
@@ -113,7 +121,7 @@ export default function LeaveManagement() {
             <Card className="border-none shadow-sm ring-1 ring-gray-200">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Permintaan</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{leaveRequests.length}</p>
                 </div>
                 <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
@@ -124,7 +132,7 @@ export default function LeaveManagement() {
             <Card className="border-none shadow-sm ring-1 ring-gray-200">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                  <p className="text-sm font-medium text-muted-foreground">Menunggu</p>
                   <p className="text-2xl font-bold text-orange-600 mt-1">{pendingCount}</p>
                 </div>
                 <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
@@ -135,7 +143,7 @@ export default function LeaveManagement() {
             <Card className="border-none shadow-sm ring-1 ring-gray-200">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Approved</p>
+                  <p className="text-sm font-medium text-muted-foreground">Disetujui</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">{approvedCount}</p>
                 </div>
                 <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
@@ -146,7 +154,7 @@ export default function LeaveManagement() {
             <Card className="border-none shadow-sm ring-1 ring-gray-200">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                  <p className="text-sm font-medium text-muted-foreground">Ditolak</p>
                   <p className="text-2xl font-bold text-red-600 mt-1">{rejectedCount}</p>
                 </div>
                 <div className="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
@@ -160,14 +168,14 @@ export default function LeaveManagement() {
           <Card className="border-none shadow-sm ring-1 ring-gray-200">
             <CardHeader className="pb-4 border-b border-gray-100 space-y-4 md:space-y-0 md:flex md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle>Requests</CardTitle>
-                <CardDescription>A list of all leave requests and their status.</CardDescription>
+                <CardTitle>Permintaan</CardTitle>
+                <CardDescription>Daftar semua permintaan cuti dan statusnya.</CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search..."
+                    placeholder="Cari..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 w-full sm:w-[250px] bg-slate-50 border-slate-200"
@@ -182,7 +190,7 @@ export default function LeaveManagement() {
                       size="sm"
                       className={filterStatus === status ? "bg-slate-900 border-slate-900 text-white" : "text-slate-600 border-slate-200"}
                     >
-                      {status}
+                      {statusLabels[status] || status}
                     </Button>
                   ))}
                 </div>
@@ -192,12 +200,12 @@ export default function LeaveManagement() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="w-[300px]">Employee</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Dates</TableHead>
+                    <TableHead className="w-[300px]">Karyawan</TableHead>
+                    <TableHead>Tipe</TableHead>
+                    <TableHead>Durasi</TableHead>
+                    <TableHead>Tanggal</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -226,17 +234,17 @@ export default function LeaveManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-gray-600">
-                          {getDaysBetween(request.start_date, request.end_date)} days
+                          {getDaysBetween(request.start_date, request.end_date)} hari
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col text-xs text-gray-500">
-                            <span className="font-medium text-gray-700">{request.start_date}</span>
-                            <span>to {request.end_date}</span>
+                            <span className="font-medium text-gray-700">{format(new Date(request.start_date), "d MMM yyyy", { locale: id })}</span>
+                            <span>sampai {format(new Date(request.end_date), "d MMM yyyy", { locale: id })}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(request.status)}>
-                            {request.status}
+                            {statusLabels[request.status] || request.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -250,9 +258,9 @@ export default function LeaveManagement() {
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
-                                  <DialogTitle>Leave Request Details</DialogTitle>
+                                  <DialogTitle>Detail Permintaan Cuti</DialogTitle>
                                   <DialogDescription>
-                                    Details for {empName}&apos;s request.
+                                    Detail permintaan {empName}.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
@@ -277,7 +285,7 @@ export default function LeaveManagement() {
                                     </span>
                                   </div>
                                   <div className="grid grid-cols-4 items-center gap-4">
-                                    <span className="text-right font-medium text-muted-foreground">Requested</span>
+                                    <span className="text-right font-medium text-muted-foreground">Diajukan</span>
                                     <span className="col-span-3 text-sm text-gray-500">{new Date(request.created_at).toLocaleDateString()}</span>
                                   </div>
                                 </div>
@@ -288,14 +296,14 @@ export default function LeaveManagement() {
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800">
-                                      Reject
+                                      Tolak
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Reject Request?</AlertDialogTitle>
+                                      <AlertDialogTitle>Tolak Permintaan?</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        This will notify {empName} that their leave request has been rejected.
+                                        Ini akan memberitahu {empName} bahwa permintaan cuti mereka telah ditolak.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -308,14 +316,14 @@ export default function LeaveManagement() {
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white">
-                                      Approve
+                                      Setujui
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Approve Request</AlertDialogTitle>
+                                      <AlertDialogTitle>Setujui Permintaan</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Approve {getDaysBetween(request.start_date, request.end_date)} days of {request.leave_type} for {empName}?
+                                        Setujui cuti {request.leave_type} selama {getDaysBetween(request.start_date, request.end_date)} hari untuk {empName}?
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -327,7 +335,7 @@ export default function LeaveManagement() {
                               </>
                             ) : (
                               <Button variant="ghost" size="sm" className="h-8 text-muted-foreground" disabled>
-                                Archived
+                                Diarsipkan
                               </Button>
                             )}
                           </div>
@@ -338,7 +346,7 @@ export default function LeaveManagement() {
                   {filteredRequests.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        No requests found.
+                        Tidak ada permintaan ditemukan.
                       </TableCell>
                     </TableRow>
                   )}

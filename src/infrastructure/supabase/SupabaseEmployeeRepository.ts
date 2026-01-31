@@ -51,6 +51,41 @@ export class SupabaseEmployeeRepository implements IEmployeeRepository {
 
         if (error) throw error;
     }
+
+    async deleteEmployee(id: string): Promise<void> {
+        // Cascade delete dependent records first
+        // 1. Attendance
+        const { error: attError } = await supabase
+            .from('attendance')
+            .delete()
+            .eq('employee_id', id);
+
+        if (attError) console.error("Error deleting attendance records:", attError);
+
+        // 2. Leave Requests
+        const { error: leaveError } = await supabase
+            .from('leave_requests')
+            .delete()
+            .eq('employee_id', id);
+
+        if (leaveError) console.error("Error deleting leave requests:", leaveError);
+
+        // 3. Payslips
+        const { error: payError } = await supabase
+            .from('payslips')
+            .delete()
+            .eq('employee_id', id);
+
+        if (payError) console.error("Error deleting payslips:", payError);
+
+        // 4. Finally Delete Employee
+        const { error } = await supabase
+            .from('employees')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    }
 }
 
 export const employeeRepository = new SupabaseEmployeeRepository();

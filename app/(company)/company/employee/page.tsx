@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Upload, UserPlus, Mail, Phone, Loader2, Copy, CheckCircle } from "lucide-react";
+import { sendInvitationEmail } from "@/app/actions/email";
+import { Search, Upload, UserPlus, Mail, Phone, Loader2, Copy, CheckCircle, Trash2 } from "lucide-react";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
@@ -24,6 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 
 import { authService } from "@/src/infrastructure/auth/authService";
 import { useEmployeeViewModel } from "@/src/presentation/hooks/useEmployeeViewModel";
@@ -58,6 +69,7 @@ export default function Employees() {
     isSubmitting: viewModelSubmitting,
     updateEmployee: vmUpdateEmployee,
     inviteEmployee: vmInviteEmployee,
+    deleteEmployee: vmDeleteEmployee,
     setEmployees
   } = useEmployeeViewModel();
 
@@ -75,6 +87,9 @@ export default function Employees() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   async function handleInviteEmployee(e: React.FormEvent) {
     e.preventDefault();
@@ -107,9 +122,20 @@ export default function Employees() {
         position_id: invitePosId || null,
       });
 
+
+
       const link = `${window.location.origin}/activate-account?token=${token}`;
       setInvitationLink(link);
       console.log("📧 Employee Invitation Link:", link);
+
+      // Send Email
+      const emailResult = await sendInvitationEmail(email, link, "Humana Company"); // You might want to fetch real company name
+      if (emailResult.success) {
+        alert(`Invitation sent to ${email}`);
+      } else {
+        console.warn("Email send failed:", emailResult.error);
+        alert(`Link generated, but email failed: ${emailResult.error}`);
+      }
 
       form.reset();
       setInviteDeptId("");
@@ -145,6 +171,18 @@ export default function Employees() {
     setIsSubmitting(false);
   }
 
+  async function handleDeleteEmployee() {
+    if (!deleteTarget) return;
+    try {
+      await vmDeleteEmployee(deleteTarget.id);
+      setDeleteTarget(null);
+      setIsViewOpen(false); // Close profile view if open
+      setViewEmployee(null);
+    } catch (err: any) {
+      alert("Failed to delete employee: " + err.message);
+    }
+  }
+
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
   }
@@ -160,7 +198,8 @@ export default function Employees() {
     const matchesSearch =
       emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.id?.toLowerCase().includes(searchQuery.toLowerCase());
+      emp.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.employee_code?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDepartment =
       selectedDepartment === "All" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -171,34 +210,34 @@ export default function Employees() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Employees</h1>
-          <p className="text-muted-foreground mt-1">Manage your team members and their roles.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Karyawan</h1>
+          <p className="text-muted-foreground mt-1">Kelola anggota tim dan peran mereka.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2">
-            <Upload className="h-4 w-4" /> Import
+            <Upload className="h-4 w-4" /> Impor
           </Button>
           <Dialog open={isInviteOpen} onOpenChange={(open) => { setIsInviteOpen(open); if (!open) { setInvitationLink(null); setInviteDeptId(""); setInvitePosId(""); } }}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                <UserPlus className="h-4 w-4" /> Invite Employee
+              <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+                <UserPlus className="h-4 w-4" /> Undang Karyawan
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Invite New Employee</DialogTitle>
+                <DialogTitle>Undang Karyawan Baru</DialogTitle>
                 <DialogDescription>
-                  Send an activation link to onboard a new team member.
+                  Kirim tautan aktivasi untuk anggota tim baru.
                 </DialogDescription>
               </DialogHeader>
               {invitationLink ? (
                 <div className="space-y-4 py-4">
                   <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-green-800 text-sm font-medium">Invitation created!</span>
+                    <span className="text-green-800 text-sm font-medium">Undangan dibuat!</span>
                   </div>
                   <div className="space-y-2">
-                    <Label>Activation Link</Label>
+                    <Label>Tautan Aktivasi</Label>
                     <div className="flex gap-2">
                       <Input value={invitationLink} readOnly className="text-xs" />
                       <Button variant="outline" size="icon" onClick={() => copyToClipboard(invitationLink)}>
@@ -206,17 +245,17 @@ export default function Employees() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Share this link with the employee. Valid for 48 hours.
+                      Bagikan tautan ini kepada karyawan. Berlaku selama 48 jam.
                     </p>
                   </div>
                   <Button className="w-full" onClick={() => { setIsInviteOpen(false); setInvitationLink(null) }}>
-                    Done
+                    Selesai
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleInviteEmployee} className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="fullName">Nama Lengkap</Label>
                     <Input id="fullName" name="fullName" placeholder="John Doe" required />
                   </div>
                   <div className="space-y-2">
@@ -224,10 +263,10 @@ export default function Employees() {
                     <Input id="email" name="email" type="email" placeholder="john@company.com" required />
                   </div>
                   <div className="space-y-2">
-                    <Label>Department</Label>
+                    <Label>Departemen</Label>
                     <Select value={inviteDeptId} onValueChange={(val: string) => { setInviteDeptId(val); setInvitePosId(""); }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
+                        <SelectValue placeholder="Pilih departemen" />
                       </SelectTrigger>
                       <SelectContent>
                         {departments.map((dept) => (
@@ -236,14 +275,14 @@ export default function Employees() {
                       </SelectContent>
                     </Select>
                     {departments.length === 0 && (
-                      <p className="text-xs text-muted-foreground">No departments yet. Add them in Settings.</p>
+                      <p className="text-xs text-muted-foreground">Belum ada departemen. Tambahkan di Pengaturan.</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Position</Label>
+                    <Label>Posisi</Label>
                     <Select value={invitePosId} onValueChange={setInvitePosId}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select position" />
+                        <SelectValue placeholder="Pilih posisi" />
                       </SelectTrigger>
                       <SelectContent>
                         {filteredPositions.map((pos) => (
@@ -252,13 +291,13 @@ export default function Employees() {
                       </SelectContent>
                     </Select>
                     {positions.length === 0 && (
-                      <p className="text-xs text-muted-foreground">No positions yet. Add them in Settings.</p>
+                      <p className="text-xs text-muted-foreground">Belum ada posisi. Tambahkan di Pengaturan.</p>
                     )}
                   </div>
                   <DialogFooter>
                     <Button type="submit" className="w-full bg-indigo-600" disabled={isSubmitting}>
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Send Invitation
+                      Kirim Undangan
                     </Button>
                   </DialogFooter>
                 </form>
@@ -272,9 +311,9 @@ export default function Employees() {
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Employee" : "Employee Profile"}</DialogTitle>
+            <DialogTitle>{isEditing ? "Ubah Data Karyawan" : "Profil Karyawan"}</DialogTitle>
             <DialogDescription>
-              {isEditing ? "Update employee information." : "Detailed information about the employee."}
+              {isEditing ? "Perbarui informasi karyawan." : "Informasi detail tentang karyawan."}
             </DialogDescription>
           </DialogHeader>
 
@@ -283,7 +322,7 @@ export default function Employees() {
               <form onSubmit={handleUpdateEmployee} className="space-y-4 pt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Full Name</Label>
+                    <Label>Nama Lengkap</Label>
                     <Input
                       value={viewEmployee.name}
                       onChange={(e) => setViewEmployee({ ...viewEmployee, name: e.target.value })}
@@ -300,14 +339,14 @@ export default function Employees() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Inactive">Inactive</SelectItem>
-                        <SelectItem value="On Leave">On Leave</SelectItem>
+                        <SelectItem value="Active">Aktif</SelectItem>
+                        <SelectItem value="Inactive">Tidak Aktif</SelectItem>
+                        <SelectItem value="On Leave">Cuti</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Phone</Label>
+                    <Label>Telepon</Label>
                     <Input
                       value={viewEmployee.phone || ""}
                       onChange={(e) => setViewEmployee({ ...viewEmployee, phone: e.target.value })}
@@ -319,7 +358,7 @@ export default function Employees() {
                     <Input value={viewEmployee.email} disabled className="bg-slate-50 text-slate-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Department</Label>
+                    <Label>Departemen</Label>
                     <Select
                       value={departments.find(d => d.name === viewEmployee.department)?.id || "custom"}
                       onValueChange={(val) => {
@@ -328,7 +367,7 @@ export default function Employees() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={viewEmployee.department || "Select..."} />
+                        <SelectValue placeholder={viewEmployee.department || "Pilih..."} />
                       </SelectTrigger>
                       <SelectContent>
                         {departments.map((dept) => (
@@ -338,7 +377,7 @@ export default function Employees() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Position</Label>
+                    <Label>Posisi</Label>
                     <Select
                       value={positions.find(p => p.name === viewEmployee.position)?.id || ""}
                       onValueChange={(val) => {
@@ -347,7 +386,7 @@ export default function Employees() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={viewEmployee.position || "Select..."} />
+                        <SelectValue placeholder={viewEmployee.position || "Pilih..."} />
                       </SelectTrigger>
                       <SelectContent>
                         {positions
@@ -361,12 +400,23 @@ export default function Employees() {
                   </div>
                 </div>
 
-                <DialogFooter className="pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isSubmitting}>Cancel</Button>
-                  <Button type="submit" className="bg-indigo-600" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Changes
+                <DialogFooter className="pt-4 flex justify-between sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setDeleteTarget(viewEmployee)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Hapus Karyawan
                   </Button>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isSubmitting}>Batal</Button>
+                    <Button type="submit" className="bg-indigo-600" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Simpan Perubahan
+                    </Button>
+                  </div>
                 </DialogFooter>
               </form>
             ) : (
@@ -383,20 +433,20 @@ export default function Employees() {
                     <h3 className="text-xl font-bold text-gray-900">{viewEmployee.name}</h3>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-slate-100 text-slate-700">
-                        {viewEmployee.position || "No Position"}
+                        {viewEmployee.position || "Tanpa Posisi"}
                       </Badge>
                       <Badge className={viewEmployee.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                        {viewEmployee.status || "Inactive"}
+                        {viewEmployee.status === "Checking In" ? "Hadir" : (viewEmployee.status || "Tidak Aktif")}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground pt-1">ID: <span className="font-mono text-xs">{viewEmployee.id}</span></p>
+                    <p className="text-sm text-muted-foreground pt-1">ID/NIK: <span className="font-mono text-xs text-indigo-700 font-semibold">{viewEmployee.employee_code || viewEmployee.id}</span></p>
                   </div>
                 </div>
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-6 pt-2">
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Email Address</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Alamat Email</Label>
                     <div className="flex items-center gap-2 text-sm text-gray-900 font-medium p-2 bg-slate-50 rounded-md">
                       <Mail className="h-4 w-4 text-gray-400" />
                       {viewEmployee.email}
@@ -404,27 +454,27 @@ export default function Employees() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Phone Number</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Nomor Telepon</Label>
                     <div className="flex items-center gap-2 text-sm text-gray-900 font-medium p-2 bg-slate-50 rounded-md">
                       <Phone className="h-4 w-4 text-gray-400" />
-                      {viewEmployee.phone || "Not provided"}
+                      {viewEmployee.phone || "Tidak tersedia"}
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Department</Label>
-                    <p className="text-sm font-medium pl-1">{viewEmployee.department || "Unassigned"}</p>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Departemen</Label>
+                    <p className="text-sm font-medium pl-1">{viewEmployee.department || "Belum Ditugaskan"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Date Joined</Label>
-                    <p className="text-sm font-medium pl-1">{viewEmployee.join_date ? new Date(viewEmployee.join_date).toLocaleDateString('en-US', { dateStyle: 'long' }) : "-"}</p>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Tanggal Bergabung</Label>
+                    <p className="text-sm font-medium pl-1">{viewEmployee.join_date ? new Date(viewEmployee.join_date).toLocaleDateString('id-ID', { dateStyle: 'long' }) : "-"}</p>
                   </div>
                 </div>
 
                 <div className="pt-4 flex justify-end gap-2 border-t border-gray-100">
-                  <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
-                  <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsEditing(true)}>Edit Details</Button>
+                  <Button variant="outline" onClick={() => setIsViewOpen(false)}>Tutup</Button>
+                  <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsEditing(true)}>Ubah Detail</Button>
                 </div>
               </div>
             )
@@ -445,7 +495,7 @@ export default function Employees() {
                 <div className="relative flex-1 w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="Search by name, email, or ID..."
+                    placeholder="Cari nama, email, atau NIK..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
@@ -508,7 +558,7 @@ export default function Employees() {
                       {employee.phone && (
                         <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
                           <span className="flex items-center gap-2">
-                            <Phone className="w-3.5 h-3.5" /> Phone
+                            <Phone className="w-3.5 h-3.5" /> Telepon
                           </span>
                           <span className="text-gray-900">{employee.phone}</span>
                         </div>
@@ -525,7 +575,7 @@ export default function Employees() {
                           setIsViewOpen(true);
                         }}
                       >
-                        View Profile
+                        Lihat Profil
                       </Button>
                     </div>
                   </div>
@@ -540,13 +590,44 @@ export default function Employees() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 mb-4">
                   <Search className="h-6 w-6 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">No employees found</h3>
-                <p className="text-gray-600">Try adjusting your filters or invite new employees.</p>
+                <h3 className="text-lg font-medium text-gray-900">Tidak ada karyawan ditemukan</h3>
+                <p className="text-gray-600">Coba sesuaikan filter atau undang karyawan baru.</p>
               </CardContent>
             </Card>
           )}
         </>
       )}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Karyawan?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-muted-foreground text-sm">
+                <p>Apakah Anda yakin ingin menghapus <strong>{deleteTarget?.name}</strong>?</p>
+                <div className="bg-red-50 p-3 rounded-md border border-red-100 text-red-800 text-sm">
+                  <p className="font-semibold mb-1">Peringatan: Tindakan ini tidak dapat dibatalkan!</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Profil karyawan akan dihapus secara permanen.</li>
+                    <li>Semua <strong>Riwayat Absensi</strong> akan dihapus.</li>
+                    <li>Semua <strong>Permintaan Cuti</strong> akan dihapus.</li>
+                    <li>Semua <strong>Slip Gaji</strong> akan dihapus.</li>
+                  </ul>
+                </div>
+                <p className="pt-2">Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              onClick={handleDeleteEmployee}
+            >
+              Hapus Karyawan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

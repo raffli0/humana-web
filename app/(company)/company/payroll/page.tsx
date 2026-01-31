@@ -24,7 +24,9 @@ export default function Payroll() {
         payslips: payrollData,
         loading,
         calculateSummary,
-        refresh
+        refresh,
+        generatePayroll,
+        isSubmitting
     } = usePayrollViewModel();
 
     const summary = calculateSummary();
@@ -38,7 +40,11 @@ export default function Payroll() {
         const matchesSearch =
             (item.employees?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
             (item.employees?.position || "").toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = filterStatus === "All" || item.status === filterStatus;
+        const maps = {
+            "Semua": "All", "Dibayar": "Paid", "Menunggu": "Pending", "Diproses": "Processing", "Gagal": "Failed"
+        };
+        const activeFilter = maps[filterStatus as keyof typeof maps] || "All";
+        const matchesStatus = filterStatus === "Semua" || item.status === activeFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -75,15 +81,24 @@ export default function Payroll() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Payroll</h1>
-                    <p className="text-muted-foreground mt-1">Manage employee salaries and payment history.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Penggajian</h1>
+                    <p className="text-muted-foreground mt-1">Kelola gaji dan riwayat pembayaran karyawan.</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" className="gap-2">
-                        <Download className="h-4 w-4" /> Export Report
+                        <Download className="h-4 w-4" /> Ekspor Laporan
                     </Button>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
-                        <DollarSign className="h-4 w-4" /> Run Payroll
+                    <Button
+                        onClick={generatePayroll}
+                        disabled={isSubmitting}
+                        className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer"
+                    >
+                        {isSubmitting ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        ) : (
+                            <DollarSign className="h-4 w-4 mr-2" />
+                        )}
+                        Jalankan Penggajian
                     </Button>
                 </div>
             </div>
@@ -94,7 +109,7 @@ export default function Payroll() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Payroll</p>
+                                <p className="text-sm font-medium text-muted-foreground">Total Gaji</p>
                                 <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalPayroll)}</p>
                             </div>
                             <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
@@ -104,7 +119,7 @@ export default function Payroll() {
                         <div className="mt-4 flex items-center text-xs text-green-600">
                             <TrendingUp className="h-3 w-3 mr-1" />
                             <span className="font-medium">+2.5%</span>
-                            <span className="text-muted-foreground ml-1">from last month</span>
+                            <span className="text-muted-foreground ml-1">dari bulan lalu</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -112,7 +127,7 @@ export default function Payroll() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Employees Paid</p>
+                                <p className="text-sm font-medium text-muted-foreground">Karyawan Dibayar</p>
                                 <p className="text-2xl font-bold text-gray-900 mt-1">{paidCount}</p>
                             </div>
                             <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
@@ -122,7 +137,7 @@ export default function Payroll() {
                         <div className="mt-4 flex items-center text-xs text-green-600">
                             <ArrowUpRight className="h-3 w-3 mr-1" />
                             <span className="font-medium">{paidRate}%</span>
-                            <span className="text-muted-foreground ml-1">success rate</span>
+                            <span className="text-muted-foreground ml-1">tingkat sukses</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -130,7 +145,7 @@ export default function Payroll() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                                <p className="text-sm font-medium text-muted-foreground">Menunggu</p>
                                 <p className="text-2xl font-bold text-orange-600 mt-1">{formatCurrency(pendingAmount)}</p>
                             </div>
                             <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
@@ -138,7 +153,7 @@ export default function Payroll() {
                             </div>
                         </div>
                         <div className="mt-4 text-xs text-muted-foreground">
-                            {pendingCount} transactions pending
+                            {pendingCount} transaksi menunggu
                         </div>
                     </CardContent>
                 </Card>
@@ -146,7 +161,7 @@ export default function Payroll() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Avg. Salary</p>
+                                <p className="text-sm font-medium text-muted-foreground">Rata-rata Gaji</p>
                                 <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(avgSalary)}</p>
                             </div>
                             <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
@@ -156,7 +171,7 @@ export default function Payroll() {
                         <div className="mt-4 flex items-center text-xs text-green-600">
                             <TrendingUp className="h-3 w-3 mr-1" />
                             <span className="font-medium">+1.2%</span>
-                            <span className="text-muted-foreground ml-1">inc. bonus</span>
+                            <span className="text-muted-foreground ml-1">trmsk. bonus</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -166,14 +181,14 @@ export default function Payroll() {
             <Card className="border-none shadow-sm ring-1 ring-gray-200">
                 <CardHeader className="pb-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <CardTitle>Payment History</CardTitle>
-                        <CardDescription>Recent transactions and salary disbursements.</CardDescription>
+                        <CardTitle>Riwayat Pembayaran</CardTitle>
+                        <CardDescription>Transaksi terbaru dan pencairan gaji.</CardDescription>
                     </div>
                     <div className="flex gap-3 flex-col sm:flex-row">
                         <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search employee..."
+                                placeholder="Cari karyawan..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9 w-[250px] bg-slate-50 border-slate-200"
@@ -203,13 +218,13 @@ export default function Payroll() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-slate-50 hover:bg-slate-50">
-                                    <TableHead>Employee</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Method</TableHead>
-                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Karyawan</TableHead>
+                                    <TableHead>Peran</TableHead>
+                                    <TableHead>Tanggal</TableHead>
+                                    <TableHead>Metode</TableHead>
+                                    <TableHead>Jumlah</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -225,12 +240,15 @@ export default function Payroll() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-gray-500">{item.employees?.position}</TableCell>
-                                        <TableCell className="text-gray-500">{new Date(item.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="text-gray-500">Bank Transfer</TableCell>
+                                        <TableCell className="text-gray-500">{new Date(item.created_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' })}</TableCell>
+                                        <TableCell className="text-gray-500">Transfer Bank</TableCell>
                                         <TableCell className="font-medium text-gray-900">{formatCurrency(item.net_salary)}</TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className={getStatusColor(item.status)}>
-                                                {item.status}
+                                                {item.status === "Paid" ? "Dibayar" :
+                                                    item.status === "Pending" ? "Menunggu" :
+                                                        item.status === "Processing" ? "Diproses" :
+                                                            item.status === "Draft" ? "Draft" : "Gagal"}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -244,7 +262,7 @@ export default function Payroll() {
                                 {filteredPayroll.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                                            No records found.
+                                            Tidak ada data ditemukan.
                                         </TableCell>
                                     </TableRow>
                                 )}

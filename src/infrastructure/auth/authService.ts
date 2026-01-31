@@ -74,9 +74,47 @@ export class AuthService {
     }
 
     async createEmployee(employee: any) {
+        let employeeCode = null;
+
+        if (employee.company_id) {
+            try {
+                // 1. Get Company Code
+                const { data: company } = await supabase
+                    .from('companies')
+                    .select('code, name')
+                    .eq('id', employee.company_id)
+                    .single();
+
+                let prefix = company?.code;
+
+                // Fallback: Generate generic prefix if not set
+                if (!prefix && company?.name) {
+                    prefix = company.name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase();
+                }
+
+                if (prefix) {
+                    // 2. Get Sequence
+                    const { count } = await supabase
+                        .from('employees')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('company_id', employee.company_id);
+
+                    const sequence = (count || 0) + 1;
+                    const year = new Date().getFullYear().toString().slice(-2);
+                    // Format: CODE + YY + 0001
+                    employeeCode = `${prefix}${year}${sequence.toString().padStart(4, '0')}`;
+                }
+            } catch (e) {
+                console.error("Failed to generate employee code", e);
+            }
+        }
+
         return await supabase
             .from("employees")
-            .insert(employee);
+            .insert({
+                ...employee,
+                employee_code: employeeCode
+            });
     }
 }
 
