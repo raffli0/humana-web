@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import NextImage from "next/image";
 import { sendInvitationEmail } from "@/app/actions/email";
 import { Search, Upload, UserPlus, Mail, Phone, Loader2, Copy, CheckCircle, Trash2 } from "lucide-react";
 import { Card, CardContent } from "../../../components/ui/card";
@@ -160,7 +161,8 @@ export default function Employees() {
         phone: viewEmployee.phone,
         department: viewEmployee.department,
         position: viewEmployee.position,
-        status: viewEmployee.status
+        status: viewEmployee.status,
+        employment_status: viewEmployee.employment_status
       });
 
       setIsEditing(false);
@@ -400,6 +402,25 @@ export default function Employees() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                  <div className="space-y-2">
+                    <Label>Status Karyawan</Label>
+                    <Select
+                      value={viewEmployee.employment_status || "Permanent"}
+                      onValueChange={(val: string) => setViewEmployee({ ...viewEmployee, employment_status: val })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Permanent">Tetap (Permanent)</SelectItem>
+                        <SelectItem value="Contract">Kontrak</SelectItem>
+                        <SelectItem value="Probation">Probation</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <DialogFooter className="pt-4 flex justify-between sm:justify-between">
                   <Button
                     type="button"
@@ -423,11 +444,20 @@ export default function Employees() {
               <div className="space-y-6 pt-4">
                 {/* Header Info */}
                 <div className="flex items-start gap-4">
-                  <Avatar className="h-20 w-20 ring-4 ring-slate-50">
-                    <AvatarImage src={viewEmployee.avatar} alt={viewEmployee.name} />
-                    <AvatarFallback className="text-xl bg-indigo-100 text-indigo-700 font-medium">
-                      {viewEmployee.name?.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
-                    </AvatarFallback>
+                  <Avatar className="h-20 w-20 ring-4 ring-slate-50 overflow-hidden">
+                    {viewEmployee.avatar ? (
+                      <NextImage
+                        src={viewEmployee.avatar}
+                        alt={viewEmployee.name}
+                        width={80}
+                        height={80}
+                        className="aspect-square size-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="text-xl bg-indigo-100 text-indigo-700 font-medium">
+                        {viewEmployee.name?.split(" ").map((n: any) => n[0]).join("").slice(0, 2)}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="space-y-1">
                     <h3 className="text-xl font-bold text-gray-900">{viewEmployee.name}</h3>
@@ -469,6 +499,11 @@ export default function Employees() {
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wide">Tanggal Bergabung</Label>
                     <p className="text-sm font-medium pl-1">{viewEmployee.join_date ? new Date(viewEmployee.join_date).toLocaleDateString('id-ID', { dateStyle: 'long' }) : "-"}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Status Karyawan</Label>
+                    <p className="text-sm font-medium pl-1">{viewEmployee.employment_status || "-"}</p>
                   </div>
                 </div>
 
@@ -527,16 +562,26 @@ export default function Employees() {
               <Card key={employee.id} className="group hover:shadow-md transition-all duration-200 border-none shadow-sm ring-1 ring-gray-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center">
-                    <Avatar className="h-20 w-20 ring-4 ring-slate-50 mb-4">
-                      <AvatarImage src={employee.avatar || undefined} alt={employee.name} />
-                      <AvatarFallback className="text-lg bg-indigo-100 text-indigo-700 font-medium">
-                        {employee.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                      </AvatarFallback>
+                    <Avatar className="h-20 w-20 ring-4 ring-slate-50 mb-4 overflow-hidden">
+                      {employee.avatar ? (
+                        <NextImage
+                          src={employee.avatar}
+                          alt={employee.name}
+                          width={80}
+                          height={80}
+                          className="aspect-square size-full object-cover"
+                          priority={false}
+                        />
+                      ) : (
+                        <AvatarFallback className="text-lg bg-indigo-100 text-indigo-700 font-medium">
+                          {employee.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
 
                     <div className="space-y-1">
-                      <h3 className="font-semibold text-gray-900 truncate max-w-[200px]">{employee.name}</h3>
-                      <p className="text-sm text-gray-500 truncate max-w-[200px]">{employee.position}</p>
+                      <h3 className="font-semibold text-lg text-gray-900 truncate max-w-[200px]">{employee.name}</h3>
+                      <p className="text-sm font-normal text-gray-500 truncate max-w-[200px]">{employee.position}</p>
                     </div>
 
                     {employee.department && (

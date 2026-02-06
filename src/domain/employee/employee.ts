@@ -11,6 +11,7 @@ export interface Employee {
     company_id: string;
     shift_id?: string | null;
     employee_code?: string | null;
+    employment_status?: string | null;
     basic_salary?: number | null;
 }
 
@@ -25,6 +26,10 @@ export interface Position {
     name: string;
     department_id: string | null;
     company_id: string;
+    base_salary?: number | null;
+    position_allowance?: number | null;
+    transport_allowance?: number | null;
+    meal_allowance?: number | null;
 }
 
 export interface Invitation {

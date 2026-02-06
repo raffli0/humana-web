@@ -5,7 +5,7 @@ import { IRecruitmentRepository } from '../../domain/recruitment/IRecruitmentRep
 export class SupabaseRecruitmentRepository implements IRecruitmentRepository {
     async getJobPostsByCompany(companyId: string): Promise<JobPost[]> {
         const { data, error } = await supabase
-            .from('jobs')
+            .from('recruitments')
             .select('*')
             .eq('company_id', companyId)
             .order('created_at', { ascending: false });
@@ -17,11 +17,14 @@ export class SupabaseRecruitmentRepository implements IRecruitmentRepository {
     async getCandidatesByCompany(companyId: string): Promise<Candidate[]> {
         const { data, error } = await supabase
             .from('candidates')
-            .select('*, jobs(title)')
+            .select('*, recruitments(title)')
             .eq('company_id', companyId)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.warn("Error fetching candidates:", error.message);
+            return [];
+        }
         return data || [];
     }
 
@@ -36,7 +39,7 @@ export class SupabaseRecruitmentRepository implements IRecruitmentRepository {
 
     async createJobPost(job: Partial<JobPost>): Promise<void> {
         const { error } = await supabase
-            .from('jobs')
+            .from('recruitments')
             .insert(job);
 
         if (error) throw error;

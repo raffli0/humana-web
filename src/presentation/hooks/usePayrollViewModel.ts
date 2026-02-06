@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { payrollRepository } from '../../infrastructure/supabase/SupabasePayrollRepository';
 import { employeeRepository } from '../../infrastructure/supabase/SupabaseEmployeeRepository';
 import { authService } from '../../infrastructure/auth/authService';
-import { GetPayslipsUseCase, UpdatePayslipStatusUseCase, CreatePayslipUseCase } from '../../application/payroll/PayrollUseCases';
+import { GetPayslipsUseCase, UpdatePayslipStatusUseCase, CreatePayslipUseCase, UpdatePayslipDataUseCase } from '../../application/payroll/PayrollUseCases';
 import { GeneratePayslipsUseCase } from '../../application/payroll/GeneratePayslipsUseCase';
 import { Payslip, PayrollSummary } from '../../domain/payroll/payroll';
 
@@ -13,6 +13,7 @@ export function usePayrollViewModel() {
 
     const getPayslipsUseCase = new GetPayslipsUseCase(payrollRepository);
     const updatePayslipStatusUseCase = new UpdatePayslipStatusUseCase(payrollRepository);
+    const updatePayslipDataUseCase = new UpdatePayslipDataUseCase(payrollRepository);
     const generatePayslipsUseCase = new GeneratePayslipsUseCase(payrollRepository, employeeRepository);
 
     const fetchData = useCallback(async () => {
@@ -34,11 +35,24 @@ export function usePayrollViewModel() {
         fetchData();
     }, [fetchData]);
 
-    const updateStatus = async (payslipId: string, status: 'Paid' | 'Cancelled') => {
+    const updateStatus = async (payslipId: string, status: 'Paid' | 'Cancelled' | 'Pending' | 'Processing') => {
         setIsSubmitting(true);
         try {
             await updatePayslipStatusUseCase.execute(payslipId, status);
             setPayslips(prev => prev.map(p => p.id === payslipId ? { ...p, status } : p));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const updateData = async (payslipId: string, data: Partial<Payslip>) => {
+        setIsSubmitting(true);
+        try {
+            await updatePayslipDataUseCase.execute(payslipId, data);
+            await fetchData(); // Refresh data to get consistent calculation if any
+        } catch (error) {
+            console.error("Failed to update payslip data:", error);
+            throw error;
         } finally {
             setIsSubmitting(false);
         }
@@ -85,6 +99,7 @@ export function usePayrollViewModel() {
         loading,
         isSubmitting,
         updateStatus,
+        updateData,
         calculateSummary,
         refresh: fetchData,
         generatePayroll

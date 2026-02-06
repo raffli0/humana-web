@@ -45,7 +45,7 @@ export default function PlatformDashboard() {
                     <Button variant="outline" size="icon" className="rounded-full">
                         <Bell className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-[#0C212F] hover:bg-[#0C212F]/90">
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all hover:scale-105 active:scale-100">
                         <Plus className="mr-2 h-4 w-4" /> New Company
                     </Button>
                 </div>
@@ -87,12 +87,12 @@ export default function PlatformDashboard() {
                                             <Badge variant="outline">{company.plan}</Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={company.status === "Active" ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-amber-100 text-amber-700 hover:bg-amber-100"}>
+                                            <Badge className={company.status === "Active" ? "bg-green-100/80 text-green-700 hover:bg-green-100 border border-green-200 shadow-none" : "bg-amber-100/80 text-amber-700 hover:bg-amber-100 border border-amber-200 shadow-none"}>
                                                 {company.status}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm">Manage</Button>
+                                            <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">Manage</Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -120,14 +120,22 @@ export default function PlatformDashboard() {
 
 function StatsCard({ title, value, icon: Icon, trend }: any) {
     return (
-        <Card className="border-none shadow-sm ring-1 ring-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
-                <p className="text-xs text-green-600 mt-1 font-medium">{trend}</p>
+        <Card className="border-none shadow-md ring-1 ring-slate-100 bg-white relative overflow-hidden group hover:ring-indigo-100 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-50 to-transparent rounded-bl-full -mr-6 -mt-6 transition-transform group-hover:scale-110 opacity-50" />
+            <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="h-12 w-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                        <Icon className="h-6 w-6" />
+                    </div>
+                    <div className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center ${trend.includes('+') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        {trend.includes('+') ? <TrendingUp className="h-3 w-3 mr-1" /> : <Activity className="h-3 w-3 mr-1" />}
+                        {trend.split(' ')[0]}
+                    </div>
+                </div>
+                <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+                    <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{value}</h3>
+                </div>
             </CardContent>
         </Card>
     )

@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { shiftRepository } from '../../infrastructure/supabase/SupabaseShiftRepository';
 import { employeeRepository } from '../../infrastructure/supabase/SupabaseEmployeeRepository';
 import { authService } from '../../infrastructure/auth/authService';
-import { Shift, ShiftWithEmployeeCount } from '../../domain/shift/shift';
+import { Shift, ShiftWithEmployeeCount, ShiftSwap } from '../../domain/shift/shift';
 import { Employee } from '../../domain/employee/employee';
 
 export function useShiftViewModel() {
     const [shifts, setShifts] = useState<ShiftWithEmployeeCount[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [shiftSwaps, setShiftSwaps] = useState<ShiftSwap[]>([]);
     const [loading, setLoading] = useState(true);
     const [companyId, setCompanyId] = useState<string | null>(null);
 
@@ -17,12 +18,14 @@ export function useShiftViewModel() {
             const profile = await authService.getCurrentProfile();
             if (profile?.company_id) {
                 setCompanyId(profile.company_id);
-                const [shiftsData, employeesData] = await Promise.all([
+                const [shiftsData, employeesData, swapsData] = await Promise.all([
                     shiftRepository.getShifts(profile.company_id),
-                    employeeRepository.getEmployeesByCompany(profile.company_id)
+                    employeeRepository.getEmployeesByCompany(profile.company_id),
+                    shiftRepository.getShiftSwaps(profile.company_id)
                 ]);
                 setShifts(shiftsData);
                 setEmployees(employeesData);
+                setShiftSwaps(swapsData);
             }
         } catch (error) {
             console.error("Failed to fetch shift data:", error);
@@ -76,14 +79,26 @@ export function useShiftViewModel() {
         }
     };
 
+    const updateSwapStatus = async (id: string, status: string, adminNote?: string) => {
+        try {
+            await shiftRepository.updateShiftSwapStatus(id, status, adminNote);
+            setShiftSwaps(prev => prev.map(s => s.id === id ? { ...s, status, admin_note: adminNote } : s));
+        } catch (error) {
+            console.error("Failed to update swap status:", error);
+            throw error;
+        }
+    };
+
     return {
         shifts,
         employees,
+        shiftSwaps,
         loading,
         createShift,
         updateShift,
         deleteShift,
         assignShift,
+        updateSwapStatus,
         refresh: fetchData
     };
 }

@@ -51,7 +51,15 @@ export function useRecruitmentViewModel() {
     const createJob = async (job: Partial<JobPost>) => {
         setIsSubmitting(true);
         try {
-            await createJobPostUseCase.execute(job);
+            const profile = await authService.getCurrentProfile();
+            if (!profile?.company_id) {
+                throw new Error("Company ID not found");
+            }
+
+            await createJobPostUseCase.execute({
+                ...job,
+                company_id: profile.company_id
+            });
             await fetchData();
         } finally {
             setIsSubmitting(false);

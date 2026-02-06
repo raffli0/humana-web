@@ -5,4 +5,5 @@ export interface IPayrollRepository {
     updatePayslipStatus(payslipId: string, status: string): Promise<void>;
     createPayslip(payslip: Partial<Payslip>): Promise<void>;
     getPayslipsByEmployee(employeeId: string): Promise<Payslip[]>;
+    updatePayslipData(id: string, data: Partial<Payslip>): Promise<void>;
 }

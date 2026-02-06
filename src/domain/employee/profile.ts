@@ -6,4 +6,7 @@ export interface Profile {
     role: string | null;
     status: string | null;
     avatar_url?: string;
+    companies?: {
+        name: string;
+    };
 }

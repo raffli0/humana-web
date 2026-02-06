@@ -58,6 +58,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
     const [salary, setSalary] = useState(pos.base_salary?.toString() || "");
     const [transport, setTransport] = useState(pos.transport_allowance?.toString() || "");
     const [meal, setMeal] = useState(pos.meal_allowance?.toString() || "");
+    const [positionAllowance, setPositionAllowance] = useState(pos.position_allowance?.toString() || "");
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -68,6 +69,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                 base_salary: parseFloat(salary) || 0,
                 transport_allowance: parseFloat(transport) || 0,
                 meal_allowance: parseFloat(meal) || 0,
+                position_allowance: parseFloat(positionAllowance) || 0,
             });
             setHasChanges(false);
         } catch (error: any) {
@@ -78,7 +80,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
         }
     };
 
-    const total = (parseFloat(salary) || 0) + (parseFloat(transport) || 0) + (parseFloat(meal) || 0);
+    const total = (parseFloat(salary) || 0) + (parseFloat(transport) || 0) + (parseFloat(meal) || 0) + (parseFloat(positionAllowance) || 0);
 
     return (
         <motion.div
@@ -147,6 +149,21 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                                         }}
                                     />
                                 </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Position Allowance</Label>
+                            <div className="relative">
+                                <Input
+                                    type="number"
+                                    className="h-9 text-xs border-slate-200 bg-slate-50/30 focus-visible:ring-indigo-500"
+                                    value={positionAllowance}
+                                    placeholder="0"
+                                    onChange={(e) => {
+                                        setPositionAllowance(e.target.value);
+                                        setHasChanges(true);
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>

@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import NextImage from "next/image";
 import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 import { cn } from "./utils";
 
@@ -39,14 +40,23 @@ export function ProfileDropdown({
             "cursor-pointer"
           )}
         >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={avatarUrl} />
-            <AvatarFallback>
-              {name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
+          <Avatar className="h-8 w-8 overflow-hidden">
+            {avatarUrl ? (
+              <NextImage
+                src={avatarUrl}
+                alt={name}
+                width={32}
+                height={32}
+                className="aspect-square size-full object-cover"
+              />
+            ) : (
+              <AvatarFallback>
+                {name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            )}
           </Avatar>
 
           <div className="hidden lg:flex flex-col text-left text-xs">

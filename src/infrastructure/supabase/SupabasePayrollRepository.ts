@@ -6,7 +6,7 @@ export class SupabasePayrollRepository implements IPayrollRepository {
     async getPayslipsByCompany(companyId: string): Promise<Payslip[]> {
         const { data, error } = await supabase
             .from('payslips')
-            .select('*, employees(name, avatar, department, position)')
+            .select('*, employees(name, avatar, department, position, nik, npwp, employment_status)')
             .eq('company_id', companyId)
             .order('created_at', { ascending: false });
 
@@ -28,7 +28,10 @@ export class SupabasePayrollRepository implements IPayrollRepository {
             .from('payslips')
             .insert(payslip);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Error creating payslip:", error);
+            throw error;
+        }
     }
 
     async getPayslipsByEmployee(employeeId: string): Promise<Payslip[]> {
@@ -40,6 +43,15 @@ export class SupabasePayrollRepository implements IPayrollRepository {
 
         if (error) throw error;
         return data || [];
+    }
+
+    async updatePayslipData(id: string, data: Partial<Payslip>): Promise<void> {
+        const { error } = await supabase
+            .from('payslips')
+            .update(data)
+            .eq('id', id);
+
+        if (error) throw error;
     }
 }
 

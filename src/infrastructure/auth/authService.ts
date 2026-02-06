@@ -14,7 +14,7 @@ export class AuthService {
 
         const { data, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select('*, companies(name)')
             .eq('id', user.id)
             .single();
 

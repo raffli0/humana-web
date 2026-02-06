@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import NextImage from "next/image";
 import { Search, Plus, FileText, Check, X, Clock, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -57,8 +58,11 @@ export default function LeaveManagement() {
     "All": "Semua",
     "Semua": "Semua",
     "Pending": "Menunggu",
+    "pending": "Menunggu",
     "Approved": "Disetujui",
-    "Rejected": "Ditolak"
+    "approved": "Disetujui",
+    "Rejected": "Ditolak",
+    "rejected": "Ditolak"
   };
 
   const filteredRequests = leaveRequests.filter((request) => {
@@ -81,10 +85,13 @@ export default function LeaveManagement() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
+      case "approved":
         return "bg-green-100 text-green-700 hover:bg-green-200 border-green-200";
       case "Pending":
+      case "pending":
         return "bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200";
       case "Rejected":
+      case "rejected":
         return "bg-red-100 text-red-700 hover:bg-red-200 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 hover:bg-gray-200";
@@ -105,9 +112,7 @@ export default function LeaveManagement() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Manajemen Cuti</h1>
           <p className="text-muted-foreground mt-1">Tinjau dan kelola permintaan cuti karyawan.</p>
         </div>
-        <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
-          <Plus className="w-4 h-4" /> Buat Permintaan
-        </Button>
+
       </div>
 
       {loading ? (
@@ -202,8 +207,7 @@ export default function LeaveManagement() {
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
                     <TableHead className="w-[300px]">Karyawan</TableHead>
                     <TableHead>Tipe</TableHead>
-                    <TableHead>Durasi</TableHead>
-                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Jadwal Cuti</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
@@ -218,9 +222,18 @@ export default function LeaveManagement() {
                       <TableRow key={request.id} className="hover:bg-slate-50/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9">
-                              <AvatarImage src={empAvatar} />
-                              <AvatarFallback>{empName.charAt(0)}</AvatarFallback>
+                            <Avatar className="h-9 w-9 overflow-hidden">
+                              {empAvatar ? (
+                                <NextImage
+                                  src={empAvatar}
+                                  alt={empName}
+                                  width={36}
+                                  height={36}
+                                  className="aspect-square size-full object-cover"
+                                />
+                              ) : (
+                                <AvatarFallback>{empName.charAt(0)}</AvatarFallback>
+                              )}
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900">{empName}</p>
@@ -233,13 +246,14 @@ export default function LeaveManagement() {
                             {request.leave_type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-gray-600">
-                          {getDaysBetween(request.start_date, request.end_date)} hari
-                        </TableCell>
                         <TableCell>
-                          <div className="flex flex-col text-xs text-gray-500">
-                            <span className="font-medium text-gray-700">{format(new Date(request.start_date), "d MMM yyyy", { locale: id })}</span>
-                            <span>sampai {format(new Date(request.end_date), "d MMM yyyy", { locale: id })}</span>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900 text-sm">
+                              {format(new Date(request.start_date), "d MMM", { locale: id })} - {format(new Date(request.end_date), "d MMM yyyy", { locale: id })}
+                            </span>
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              {getDaysBetween(request.start_date, request.end_date)} hari
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -291,12 +305,13 @@ export default function LeaveManagement() {
                                 </div>
                               </DialogContent>
                             </Dialog>
-                            {request.status === "Pending" ? (
+
+                            {request.status === "Pending" || request.status === "pending" ? (
                               <>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800">
-                                      Tolak
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full">
+                                      <X className="h-4 w-4" />
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
@@ -307,16 +322,16 @@ export default function LeaveManagement() {
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => updateStatus(request.id, "Rejected")}>Reject</AlertDialogAction>
+                                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                                      <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => updateStatus(request.id, "Rejected")}>Tolak Permintaan</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
 
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white">
-                                      Setujui
+                                    <Button size="icon" className="h-8 w-8 bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 rounded-full shadow-sm border border-green-200">
+                                      <Check className="h-4 w-4" />
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
@@ -327,8 +342,8 @@ export default function LeaveManagement() {
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction className="bg-green-600 hover:bg-green-700" onClick={() => updateStatus(request.id, "Approved")}>Approve</AlertDialogAction>
+                                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                                      <AlertDialogAction className="bg-green-600 hover:bg-green-700" onClick={() => updateStatus(request.id, "Approved")}>Setujui</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
@@ -355,7 +370,8 @@ export default function LeaveManagement() {
             </CardContent>
           </Card>
         </>
-      )}
-    </main>
+      )
+      }
+    </main >
   );
 }

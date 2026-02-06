@@ -3,29 +3,25 @@ import { AttendanceRecord, OfficeLocation } from '../../domain/attendance/attend
 import { IAttendanceRepository } from '../../domain/attendance/IAttendanceRepository';
 
 export class SupabaseAttendanceRepository implements IAttendanceRepository {
-    async getAttendanceByDate(date: string): Promise<AttendanceRecord[]> {
+    async getAttendanceByCompanyAndDate(companyId: string, date: string): Promise<AttendanceRecord[]> {
         const { data, error } = await supabase
             .from('attendance')
             .select('*, employees(name, avatar, department)')
+            .eq('company_id', companyId)
             .eq('date', date);
 
         if (error) throw error;
+        return this.mapAttendanceRecords(data || []);
+    }
 
-        return (data || []).map((record: any) => {
+    private mapAttendanceRecords(data: any[]): AttendanceRecord[] {
+        return data.map((record: any) => {
             let photo_url = `https://placehold.co/400x400?text=No+Photo`;
 
             if (record.employee_id && record.date && record.check_in) {
                 try {
-                    // Pattern: {userId}_checkin_{Ymd}_{His}.jpg
-                    // Note: Server uses UTC (GMT+0) for filenames, while DB uses local time (GMT+7)
                     const datePart = record.date.replace(/-/g, '');
-
-                    // Create a date object with local time (+7)
-                    const [h, m, s] = record.check_in.split(':').map(Number);
                     const localDate = new Date(`${record.date}T${record.check_in}`);
-
-                    // Subtract 7 hours to get UTC if the server is UTC and client/DB is GMT+7
-                    // Subtracting hours in a way that handles day rollover
                     const utcDate = new Date(localDate.getTime() - (7 * 60 * 60 * 1000));
 
                     const ymd = utcDate.getFullYear().toString() +
@@ -51,6 +47,16 @@ export class SupabaseAttendanceRepository implements IAttendanceRepository {
                 fallback_photo_url: record.photo_url || null,
             };
         });
+    }
+
+    async getAttendanceByDate(date: string): Promise<AttendanceRecord[]> {
+        const { data, error } = await supabase
+            .from('attendance')
+            .select('*, employees(name, avatar, department)')
+            .eq('date', date);
+
+        if (error) throw error;
+        return this.mapAttendanceRecords(data || []);
     }
 
     async getOfficeLocation(companyId: string): Promise<OfficeLocation | null> {

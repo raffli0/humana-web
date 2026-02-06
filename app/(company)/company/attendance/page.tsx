@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../components/ui/dialog";
-import Image from "next/image";
+import NextImage from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +57,7 @@ export default function Attendance() {
         return { color: "text-amber-700 bg-amber-50 border-amber-200", icon: AlertCircle, label: "Terlambat" };
       case "Absent":
       case "Alpa":
-        return { color: "text-rose-700 bg-rose-50 border-rose-200", icon: XCircle, label: "Alpa" };
+        return { color: "text-rose-700 bg-rose-50 border-rose-200 font-bold", icon: XCircle, label: "Alpa" };
       default:
         return { color: "text-slate-700 bg-slate-50 border-slate-200", icon: AlertCircle, label: status };
     }
@@ -225,7 +225,7 @@ export default function Attendance() {
                       className={cn(
                         "p-4 cursor-pointer transition-all hover:bg-slate-50 group border-l-4",
                         isSelected
-                          ? "bg-indigo-50/40 border-indigo-500"
+                          ? "bg-indigo-50 border-indigo-500 ring-1 ring-inset ring-indigo-100"
                           : "border-transparent"
                       )}
                     >
@@ -269,19 +269,17 @@ export default function Attendance() {
                                 </DialogHeader>
                                 <div className="mt-4 flex flex-col items-center">
                                   <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-100 shadow-inner bg-slate-50 flex items-center justify-center">
-                                    <img
-                                      src={record.photo_url}
-                                      alt="Bukti Absensi"
-                                      className="object-cover w-full h-full"
-                                      onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        if (record.fallback_photo_url && target.src !== record.fallback_photo_url) {
-                                          target.src = record.fallback_photo_url;
-                                        } else {
-                                          target.src = "https://placehold.co/400x400?text=Foto+Tidak+Ditemukan";
-                                        }
-                                      }}
-                                    />
+                                    {record.photo_url ? (
+                                      <NextImage
+                                        src={record.photo_url}
+                                        alt="Bukti Absensi"
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 448px) 100vw, 448px"
+                                      />
+                                    ) : (
+                                      <FileImage className="h-12 w-12 text-slate-200" />
+                                    )}
                                   </div>
                                   <div className="mt-4 w-full p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs space-y-1">
                                     <p><span className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Waktu:</span> {record.check_in}</p>

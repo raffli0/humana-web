@@ -21,6 +21,7 @@ export interface Position {
     base_salary: number | null;
     transport_allowance: number | null;
     meal_allowance: number | null;
+    position_allowance: number | null;
 }
 
 export interface ISettingsRepository {

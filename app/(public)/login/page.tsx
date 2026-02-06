@@ -9,6 +9,7 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { authService } from "@/src/infrastructure/auth/authService";
+import { Logo } from "@/app/components/ui/logo";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -35,13 +36,13 @@ export default function LoginPage() {
             const profile = await authService.getCurrentProfile();
 
             if (!profile) {
-                setError("Account not found. Please contact your administrator.");
+                setError("Akun tidak ditemukan. Silahkan hubungi administrator.");
                 await authService.signOut();
                 return;
             }
 
             if (profile.status && profile.status !== "active") {
-                setError("Your account is inactive. Please contact your administrator.");
+                setError("Akun tidak aktif. Silahkan hubungi administrator.");
                 await authService.signOut();
                 return;
             }
@@ -62,7 +63,7 @@ export default function LoginPage() {
                 router.push("/landing-page");
             }
         } catch (err: any) {
-            setError(err.message || "Failed to login. Please check your credentials.");
+            setError(err.message || "Gagal login. Silahkan cek kembali kredensial Anda.");
         } finally {
             setIsLoading(false);
         }
@@ -73,12 +74,7 @@ export default function LoginPage() {
             {/* Left Panel: Branding */}
             <div className="hidden lg:flex flex-col justify-between bg-[#0C212F] p-10 text-white">
                 <div>
-                    <div className="flex items-center gap-2 font-semibold text-xl">
-                        <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
-                            <span className="text-white font-bold">H</span>
-                        </div>
-                        Humana
-                    </div>
+                    <Logo className="text-white" />
                 </div>
 
                 <div className="max-w-md space-y-4">
@@ -96,8 +92,8 @@ export default function LoginPage() {
                 <div className="text-xs text-white/40 flex justify-between">
                     <span>© 2026 Humana Inc.</span>
                     <div className="flex gap-4">
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
+                        <a href="#" className="hover:text-white transition-colors">Privasi</a>
+                        <a href="#" className="hover:text-white transition-colors">Ketentuan</a>
                     </div>
                 </div>
             </div>
@@ -112,10 +108,10 @@ export default function LoginPage() {
                             </div>
                             <div className="space-y-2">
                                 <h1 className="text-2xl font-semibold tracking-tight">
-                                    Use the Mobile App
+                                    Gunakan Aplikasi Mobile
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    Employee access is available through the Humana mobile app. Please download the app to attendances, leave requests, and manage your profile.
+                                    Akses karyawan tersedia melalui aplikasi mobile Humana. Silahkan unduh aplikasi untuk absensi, permintaan cuti, dan mengelola profil Anda.
                                 </p>
                             </div>
                             <div className="flex flex-col gap-3">
@@ -123,13 +119,13 @@ export default function LoginPage() {
                                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
                                         <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                                     </svg>
-                                    Download for iOS
+                                    Unduh untuk iOS
                                 </Button>
                                 <Button variant="outline" className="w-full gap-2">
                                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
                                         <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.991l-2.303 2.303-8.633-8.636z" />
                                     </svg>
-                                    Download for Android
+                                    Unduh untuk Android
                                 </Button>
                             </div>
                             <Button
@@ -137,17 +133,17 @@ export default function LoginPage() {
                                 className="text-muted-foreground"
                                 onClick={() => setEmployeeBlocked(false)}
                             >
-                                ← Back to login
+                                ← Kembali ke login
                             </Button>
                         </div>
                     ) : (
                         <>
                             <div className="flex flex-col space-y-2 text-center">
                                 <h1 className="text-2xl font-semibold tracking-tight">
-                                    Welcome back
+                                    Selamat Datang Kembali
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    Enter your credentials to access your account
+                                    Masukkan kredensial Anda untuk mengakses akun
                                 </p>
                             </div>
 
@@ -178,13 +174,14 @@ export default function LoginPage() {
                                                     href="#"
                                                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-muted-foreground"
                                                 >
-                                                    Forgot your password?
+                                                    Lupa Password?
                                                 </Link>
                                             </div>
                                             <div className="relative">
                                                 <Input
                                                     id="password"
                                                     name="password"
+                                                    placeholder="*******"
                                                     type={showPassword ? "text" : "password"}
                                                     required
                                                     className="pr-10 bg-white"
@@ -204,16 +201,16 @@ export default function LoginPage() {
                                         </div>
                                         <Button type="submit" className="w-full bg-[#0C212F] hover:bg-[#0C212F]/90" disabled={isLoading}>
                                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                            Sign In
+                                            Masuk
                                         </Button>
                                     </form>
                                 </CardContent>
                             </Card>
 
                             <p className="px-8 text-center text-sm text-muted-foreground">
-                                Need access?{" "}
+                                Butuh akses?{" "}
                                 <span className="text-gray-900 dark:text-gray-100">
-                                    Contact your administrator
+                                    Hubungi administrator Anda
                                 </span>
                             </p>
                         </>

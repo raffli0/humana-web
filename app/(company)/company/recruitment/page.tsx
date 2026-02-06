@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { authService } from "@/src/infrastructure/auth/authService";
 import { useRecruitmentViewModel } from "@/src/presentation/hooks/useRecruitmentViewModel";
 import { JobPost, Candidate } from "@/src/domain/recruitment/recruitment";
+import { CreateJobDialog } from "./components/CreateJobDialog";
 
 export default function Recruitment() {
     const {
@@ -19,11 +20,13 @@ export default function Recruitment() {
         summary,
         loading,
         updateStatus,
-        refresh
+        refresh,
+        createJob
     } = useRecruitmentViewModel();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     const statuses = ["All", "Open", "Closed"];
 
@@ -46,10 +49,19 @@ export default function Recruitment() {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900">Recruitment</h1>
                     <p className="text-muted-foreground mt-1">Manage job postings and applicant tracking.</p>
                 </div>
-                <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+                <Button
+                    className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer"
+                    onClick={() => setIsCreateOpen(true)}
+                >
                     <Plus className="w-4 h-4" /> Post New Job
                 </Button>
             </div>
+
+            <CreateJobDialog
+                open={isCreateOpen}
+                onOpenChange={setIsCreateOpen}
+                onSubmit={createJob}
+            />
 
             {loading ? (
                 <div className="flex items-center justify-center min-h-[400px]">

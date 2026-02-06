@@ -1,5 +1,5 @@
 "use client";
-
+import NextImage from "next/image";
 import { useState, useEffect } from "react";
 import { FileText, Search, DollarSign, TrendingUp, Users, Download, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
@@ -15,9 +15,20 @@ import {
     TableHeader,
     TableRow,
 } from "../../../components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { MoreHorizontal, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
 import { authService } from "@/src/infrastructure/auth/authService";
+import { exportToCsv } from "@/src/lib/export";
 import { usePayrollViewModel } from "@/src/presentation/hooks/usePayrollViewModel";
 import { Payslip } from "@/src/domain/payroll/payroll";
+import { EditPayslipDialog } from "@/app/components/payroll/EditPayslipDialog";
 
 export default function Payroll() {
     const {
@@ -26,25 +37,37 @@ export default function Payroll() {
         calculateSummary,
         refresh,
         generatePayroll,
-        isSubmitting
+        isSubmitting,
+        updateStatus,
+        updateData
     } = usePayrollViewModel();
+
+    const handleEditClick = (payslip: Payslip) => {
+        setEditingPayslip(payslip);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleSavePayslip = async (id: string, data: Partial<Payslip>) => {
+        await updateData(id, data);
+        setIsEditDialogOpen(false);
+    };
 
     const summary = calculateSummary();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
+    const [editingPayslip, setEditingPayslip] = useState<Payslip | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-    const statuses = ["All", "Paid", "Pending", "Processing", "Failed"];
+    const statuses = ["All", "Draft", "Paid", "Pending", "Processing", "Failed"];
 
     const filteredPayroll = payrollData.filter((item) => {
         const matchesSearch =
             (item.employees?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
             (item.employees?.position || "").toLowerCase().includes(searchQuery.toLowerCase());
-        const maps = {
-            "Semua": "All", "Dibayar": "Paid", "Menunggu": "Pending", "Diproses": "Processing", "Gagal": "Failed"
-        };
-        const activeFilter = maps[filterStatus as keyof typeof maps] || "All";
-        const matchesStatus = filterStatus === "Semua" || item.status === activeFilter;
+
+        const activeFilter = filterStatus;
+        const matchesStatus = filterStatus === "All" || item.status === activeFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -76,6 +99,21 @@ export default function Payroll() {
         }
     };
 
+    const handleExportPayroll = () => {
+        const data = filteredPayroll.map(p => ({
+            PeriodStart: new Date(p.period_start).toLocaleDateString(),
+            PeriodEnd: new Date(p.period_end).toLocaleDateString(),
+            Employee: p.employees?.name || 'Unknown',
+            Position: p.employees?.position || '-',
+            BasicSalary: p.basic_salary,
+            TotalAllowances: p.allowances,
+            TotalDeductions: p.deductions,
+            NetSalary: p.net_salary,
+            Status: p.status
+        }));
+        exportToCsv(`humana_payroll_${new Date().toISOString().split('T')[0]}.csv`, data);
+    };
+
     return (
         <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
             {/* Header */}
@@ -85,7 +123,7 @@ export default function Payroll() {
                     <p className="text-muted-foreground mt-1">Kelola gaji dan riwayat pembayaran karyawan.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2" onClick={handleExportPayroll} disabled={loading || filteredPayroll.length === 0}>
                         <Download className="h-4 w-4" /> Ekspor Laporan
                     </Button>
                     <Button
@@ -105,21 +143,22 @@ export default function Payroll() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="border-none shadow-sm ring-1 ring-gray-200">
-                    <CardContent className="p-6">
+                <Card className="border-none shadow-md ring-1 ring-indigo-100 bg-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
+                    <CardContent className="p-6 relative z-10">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Gaji</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalPayroll)}</p>
+                                <p className="text-3xl font-bold text-gray-900 mt-2 tracking-tight">{formatCurrency(totalPayroll)}</p>
                             </div>
-                            <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
-                                <DollarSign className="h-5 w-5" />
+                            <div className="h-12 w-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center shadow-sm">
+                                <DollarSign className="h-6 w-6" />
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center text-xs text-green-600">
+                        <div className="mt-4 flex items-center text-xs font-medium text-green-600 bg-green-50 w-fit px-2 py-1 rounded-full">
                             <TrendingUp className="h-3 w-3 mr-1" />
-                            <span className="font-medium">+2.5%</span>
-                            <span className="text-muted-foreground ml-1">dari bulan lalu</span>
+                            <span>+2.5%</span>
+                            <span className="text-green-600/80 ml-1">vs bulan lalu</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -141,19 +180,20 @@ export default function Payroll() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="border-none shadow-sm ring-1 ring-gray-200">
+                <Card className="border-none shadow-sm ring-1 ring-amber-200 bg-amber-50/30">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Menunggu</p>
-                                <p className="text-2xl font-bold text-orange-600 mt-1">{formatCurrency(pendingAmount)}</p>
+                                <p className="text-sm font-medium text-amber-800">Menunggu Pembayaran</p>
+                                <p className="text-2xl font-bold text-amber-700 mt-1">{formatCurrency(pendingAmount)}</p>
                             </div>
-                            <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
+                            <div className="h-10 w-10 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center">
                                 <FileText className="h-5 w-5" />
                             </div>
                         </div>
-                        <div className="mt-4 text-xs text-muted-foreground">
-                            {pendingCount} transaksi menunggu
+                        <div className="mt-4 text-xs font-medium text-amber-800 bg-amber-100/50 w-fit px-2 py-1 rounded-full flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {pendingCount} transaksi perlu tindakan
                         </div>
                     </CardContent>
                 </Card>
@@ -222,7 +262,7 @@ export default function Payroll() {
                                     <TableHead>Peran</TableHead>
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead>Metode</TableHead>
-                                    <TableHead>Jumlah</TableHead>
+                                    <TableHead className="text-right">Jumlah</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
@@ -232,9 +272,18 @@ export default function Payroll() {
                                     <TableRow key={item.id} className="hover:bg-slate-50/50">
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={item.employees?.avatar} />
-                                                    <AvatarFallback>{(item.employees?.name || "U").charAt(0)}</AvatarFallback>
+                                                <Avatar className="h-8 w-8 overflow-hidden">
+                                                    {item.employees?.avatar ? (
+                                                        <NextImage
+                                                            src={item.employees.avatar}
+                                                            alt={item.employees.name || "Employee"}
+                                                            width={32}
+                                                            height={32}
+                                                            className="aspect-square size-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <AvatarFallback>{(item.employees?.name || "U").charAt(0)}</AvatarFallback>
+                                                    )}
                                                 </Avatar>
                                                 <span className="font-medium text-gray-900">{item.employees?.name}</span>
                                             </div>
@@ -242,7 +291,7 @@ export default function Payroll() {
                                         <TableCell className="text-gray-500">{item.employees?.position}</TableCell>
                                         <TableCell className="text-gray-500">{new Date(item.created_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' })}</TableCell>
                                         <TableCell className="text-gray-500">Transfer Bank</TableCell>
-                                        <TableCell className="font-medium text-gray-900">{formatCurrency(item.net_salary)}</TableCell>
+                                        <TableCell className="font-medium text-gray-900 text-right font-mono">{formatCurrency(item.net_salary)}</TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className={getStatusColor(item.status)}>
                                                 {item.status === "Paid" ? "Dibayar" :
@@ -252,10 +301,53 @@ export default function Payroll() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                <span className="sr-only">Open menu</span>
-                                                <FileText className="h-4 w-4 text-gray-500" />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() => updateStatus(item.id!, 'Paid')}
+                                                        disabled={item.status === 'Paid'}
+                                                        className="text-green-600 focus:text-green-700 font-medium"
+                                                    >
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> Tandai Dibayar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => updateStatus(item.id!, 'Processing')}
+                                                        disabled={item.status === 'Processing'}
+                                                        className="text-blue-600 focus:text-blue-700"
+                                                    >
+                                                        <RefreshCw className="mr-2 h-4 w-4" /> Diproses
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => updateStatus(item.id!, 'Pending')}
+                                                        disabled={item.status === 'Pending'}
+                                                        className="text-orange-600 focus:text-orange-700"
+                                                    >
+                                                        <Clock className="mr-2 h-4 w-4" /> Ditunda
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        onClick={() => updateStatus(item.id!, 'Cancelled')}
+                                                        disabled={item.status === 'Cancelled'}
+                                                        className="text-red-600 focus:text-red-700"
+                                                    >
+                                                        <XCircle className="mr-2 h-4 w-4" /> Batalkan
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleEditClick(item)}
+                                                        disabled={item.status === 'Paid'}
+                                                    >
+                                                        <FileText className="mr-2 h-4 w-4" /> Edit Rincian
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -271,6 +363,13 @@ export default function Payroll() {
                     )}
                 </CardContent>
             </Card>
+
+            <EditPayslipDialog
+                payslip={editingPayslip}
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                onSave={handleSavePayslip}
+            />
         </main>
     );
 }

@@ -49,94 +49,51 @@ import {
   Area,
 } from "recharts";
 
-import { supabase } from "../../../../src/infrastructure/supabase/client";
 import { Skeleton } from "../../../components/ui/skeleton";
-
-const payrollData = [
-  { month: "Jan", gross: 26000000, tax: 4000000, net: 22000000 },
-  { month: "Feb", gross: 30000000, tax: 5000000, net: 25000000 },
-  { month: "Mar", gross: 42000000, tax: 7000000, net: 35000000 },
-  { month: "Apr", gross: 52000000, tax: 9000000, net: 43000000 },
-  { month: "May", gross: 48000000, tax: 8000000, net: 40000000 },
-  { month: "Jun", gross: 45000000, tax: 7500000, net: 37500000 },
-  { month: "Jul", gross: 50000000, tax: 8200000, net: 41800000 },
-  { month: "Aug", gross: 53000000, tax: 8600000, net: 44400000 },
-];
-
-const departmentStats = [
-  { name: "Engineering", count: 12, total: 20, color: "bg-blue-500" },
-  { name: "Marketing", count: 8, total: 15, color: "bg-purple-500" },
-  { name: "HR", count: 3, total: 5, color: "bg-pink-500" },
-  { name: "Sales", count: 15, total: 25, color: "bg-emerald-500" },
-];
+import { useDashboardViewModel } from "@/src/presentation/hooks/useDashboardViewModel";
+import { exportToCsv } from "@/src/lib/export";
 
 export default function Dashboard() {
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [attendance, setAttendance] = useState<any[]>([]);
-  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
-  const [recruitments, setRecruitments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    loading,
+    profile,
+    employees,
+    attendance,
+    leaveRequests,
+    recruitments,
+    payslips,
+    presentToday,
+    pendingLeaves,
+    openPositions,
+    payrollChartData,
+    departmentStats,
+    recentActivities,
+    refresh
+  } = useDashboardViewModel();
 
-  const [profile, setProfile] = useState<any>(null);
+  const pendingAmount = payslips
+    .filter(p => p.status !== 'Paid')
+    .reduce((sum, p) => sum + (Number(p.net_salary) || 0), 0);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
+  const nextPaymentDate = payslips.length > 0
+    ? new Date(payslips[0].period_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    : "Belum dijadwalkan";
 
-      const { data: { user } } = await supabase.auth.getUser();
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+  };
 
-      if (user) {
-        // Parallel fetch for maximum speed 🚀
-        const today = format(new Date(), "yyyy-MM-dd");
-
-        const promises = [
-          // 1. Profile
-          supabase.from('profiles').select('*, companies(name)').eq('id', user.id).single(),
-          // 2. Employees
-          supabase.from('employees').select('*'),
-          // 3. Attendance
-          supabase.from('attendance').select('*, employees(name, avatar)').eq('date', today),
-          // 4. Leave Requests
-          supabase.from('leave_requests').select('*, employees(name, avatar)').order('request_date', { ascending: false }),
-          // 5. Recruitments
-          supabase.from('recruitments').select('*')
-        ];
-
-        try {
-          const [
-            profileRes,
-            employeesRes,
-            attendanceRes,
-            leaveRes,
-            recruitmentRes
-          ] = await Promise.all(promises);
-
-          if (profileRes.data) setProfile(profileRes.data);
-          if (employeesRes.data) setEmployees(employeesRes.data as any[]);
-          if (attendanceRes.data) setAttendance(attendanceRes.data as any[]);
-          if (leaveRes.data) setLeaveRequests(leaveRes.data as any[]);
-          if (recruitmentRes.data) setRecruitments(recruitmentRes.data as any[]);
-
-        } catch (error) {
-          console.error("Dashboard fetch error:", error);
-        }
-      }
-
-      setLoading(false);
-    }
-
-    fetchData();
-  }, []);
-
-  const presentToday = attendance.filter(
-    (a) => a.status === "Present" || a.status === "Late"
-  ).length;
-
-  const pendingLeaves = leaveRequests.filter(
-    (lr) => lr.status === "Pending"
-  ).length;
-
-  const openPositions = recruitments.filter((r) => r.status === "Open").length;
+  const handleExportReport = () => {
+    const data = employees.map(emp => ({
+      Name: emp.name,
+      Email: emp.email,
+      Position: emp.position || '-',
+      Department: emp.department || '-',
+      Status: emp.status,
+      JoinDate: emp.join_date ? new Date(emp.join_date).toLocaleDateString() : '-',
+    }));
+    exportToCsv(`humana_employees_${new Date().toISOString().split('T')[0]}.csv`, data);
+  };
 
   return (
     <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
@@ -166,7 +123,11 @@ export default function Dashboard() {
             <Bell className="h-4 w-4 text-gray-500" />
             <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
           </Button>
-          <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+          <Button
+            className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer"
+            onClick={handleExportReport}
+            disabled={loading || employees.length === 0}
+          >
             <CalendarIcon className="mr-2 h-4 w-4" /> Unduh Laporan
           </Button>
         </div>
@@ -181,6 +142,14 @@ export default function Dashboard() {
           {/* Stats Cards Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
+              title="Menunggu Persetujuan"
+              value={pendingLeaves.toString()}
+              change={`${pendingLeaves} permintaan menunggu`}
+              icon={FileText}
+              trend="down"
+              priority={true}
+            />
+            <StatsCard
               title="Total Karyawan"
               value={employees.length.toString()}
               change="+12% dari bulan lalu"
@@ -193,13 +162,6 @@ export default function Dashboard() {
               change={`${employees.length > 0 ? ((presentToday / employees.length) * 100).toFixed(0) : 0}% tingkat kehadiran`}
               icon={Activity}
               trend="neutral"
-            />
-            <StatsCard
-              title="Menunggu Persetujuan"
-              value={pendingLeaves.toString()}
-              change={`${pendingLeaves} permintaan menunggu`}
-              icon={FileText}
-              trend="down"
             />
             <StatsCard
               title="Posisi Terbuka"
@@ -231,7 +193,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent className="h-[350px] pl-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={payrollData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <AreaChart data={payrollChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
@@ -359,27 +321,29 @@ export default function Dashboard() {
               </Card>
 
               {/* Payment Status */}
-              <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-[#0C212F] text-white">
+              <Card className="border-none shadow-sm ring-1 ring-gray-200 bg-white">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <CreditCard className="h-5 w-5 opacity-80" />
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <div className="bg-indigo-50 p-1.5 rounded-md">
+                      <CreditCard className="h-4 w-4 text-indigo-600" />
+                    </div>
                     Status Pembayaran
                   </CardTitle>
-                  <CardDescription className="text-indigo-100">
+                  <CardDescription className="text-gray-500">
                     Pembayaran gaji berikutnya
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mt-4">
-                    <div className="text-3xl font-bold">Rp 124.500.999</div>
-                    <div className="text-indigo-100 text-sm mt-1">Dijadwalkan untuk 25 Feb 2026</div>
+                    <div className="text-3xl font-bold text-gray-900">{formatCurrency(pendingAmount)}</div>
+                    <div className="text-gray-500 text-sm mt-1">Dijadwalkan: {nextPaymentDate}</div>
                   </div>
-                  <Separator className="my-6 bg-white/20" />
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Memproses</span>
-                    <span className="font-semibold">68%</span>
+                  <Separator className="my-6" />
+                  <div className="flex justify-between items-center text-sm text-gray-900">
+                    <span>Estimasi</span>
+                    <span className="font-semibold">Bulan ini</span>
                   </div>
-                  <Progress value={68} className="h-1.5 mt-2 bg-indigo-900/30" indicatorClassName="bg-white" />
+                  <Progress value={100} className="h-1.5 mt-2" indicatorClassName="bg-indigo-600" />
                 </CardContent>
               </Card>
 
@@ -389,16 +353,18 @@ export default function Dashboard() {
                   <CardTitle className="text-lg">Aktivitas Hari Ini</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex gap-4 items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                      <div className="h-2 w-2 mt-2 rounded-full bg-indigo-500 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Onboarding karyawan baru</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Sarah Johnson bergabung dengan tim Desain</p>
-                        <p className="text-[10px] text-gray-400 mt-2">2 jam lalu</p>
+                  {recentActivities.length > 0 ? recentActivities.map((act) => (
+                    <div key={act.id} className="flex gap-4 items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                      <div className={`h-2 w-2 mt-2 rounded-full ${act.color} shrink-0`} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{act.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{act.description}</p>
+                        <p className="text-[10px] text-gray-400 mt-2">{act.time}</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-sm text-center text-muted-foreground py-4">Belum ada aktivitas hari ini.</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -416,16 +382,17 @@ interface StatsCardProps {
   change: string;
   icon: LucideIcon;
   trend: "up" | "down" | "neutral";
+  priority?: boolean;
 }
 
-function StatsCard({ title, value, change, icon: Icon, trend }: StatsCardProps) {
+function StatsCard({ title, value, change, icon: Icon, trend, priority }: StatsCardProps) {
   return (
-    <Card className="border-none shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-shadow">
+    <Card className={`border-none shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-shadow ${priority ? 'bg-indigo-50/50 ring-indigo-200' : ''}`}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className={`text-sm font-medium ${priority ? 'text-indigo-900' : 'text-muted-foreground'}`}>
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className={`h-4 w-4 ${priority ? 'text-indigo-500' : 'text-muted-foreground'}`} />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
