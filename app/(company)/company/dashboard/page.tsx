@@ -63,7 +63,7 @@ export default function Dashboard() {
     recruitments,
     payslips,
     presentToday,
-    pendingLeaves,
+    pendingApprovals,
     openPositions,
     payrollChartData,
     departmentStats,
@@ -152,8 +152,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
               title="Menunggu Persetujuan"
-              value={pendingLeaves.toString()}
-              change={`${pendingLeaves} permintaan menunggu`}
+              value={pendingApprovals.toString()}
+              change={`${pendingApprovals} permintaan menunggu`}
               icon={FileText}
               trend="down"
               priority={true}

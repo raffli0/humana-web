@@ -130,7 +130,7 @@ export default function Recruitment() {
                                             size="sm"
                                             className={`whitespace-nowrap ${filterStatus === status ? "bg-slate-900 text-white" : "text-slate-600 border-slate-200"}`}
                                         >
-                                            {status}
+                                            {status === "All" ? "Semua" : status === "Open" ? "Dibuka" : "Ditutup"}
                                         </Button>
                                     ))}
                                 </div>
@@ -150,7 +150,7 @@ export default function Recruitment() {
                                                     {job.title}
                                                 </CardTitle>
                                                 <Badge variant={job.status === "Open" ? "default" : "secondary"} className={job.status === "Open" ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}>
-                                                    {job.status}
+                                                    {job.status === "Open" ? "Dibuka" : "Ditutup"}
                                                 </Badge>
                                             </div>
                                             <p className="text-sm text-muted-foreground font-medium">{job.department}</p>

@@ -73,30 +73,30 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Post New job</DialogTitle>
+                    <DialogTitle>Posting Lowongan Baru</DialogTitle>
                     <DialogDescription>
-                        Create a job vacancy for your company. This will be visible in the mobile app.
+                        Buat lowongan pekerjaan baru untuk perusahaan Anda. Lowongan ini akan terlihat di aplikasi mobile.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Job Title</Label>
+                            <Label htmlFor="title">Judul Pekerjaan</Label>
                             <Input
                                 id="title"
                                 name="title"
-                                placeholder="e.g. UX Designer"
+                                placeholder="cth. UX Designer"
                                 required
                                 value={formData.title}
                                 onChange={handleChange}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="department">Department</Label>
+                            <Label htmlFor="department">Departemen</Label>
                             <Input
                                 id="department"
                                 name="department"
-                                placeholder="e.g. Product"
+                                placeholder="cth. Produk"
                                 required
                                 value={formData.department}
                                 onChange={handleChange}
@@ -106,57 +106,57 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="type">Job Type</Label>
+                            <Label htmlFor="type">Tipe Pekerjaan</Label>
                             <Select
                                 value={formData.type}
                                 onValueChange={(val) => handleSelectChange("type", val)}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Pilih tipe" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Full-time">Full-time</SelectItem>
-                                    <SelectItem value="Part-time">Part-time</SelectItem>
-                                    <SelectItem value="Contract">Contract</SelectItem>
-                                    <SelectItem value="Internship">Internship</SelectItem>
+                                    <SelectItem value="Full-time">Penuh Waktu</SelectItem>
+                                    <SelectItem value="Part-time">Paruh Waktu</SelectItem>
+                                    <SelectItem value="Contract">Kontrak</SelectItem>
+                                    <SelectItem value="Internship">Magang</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="location">Location</Label>
+                            <Label htmlFor="location">Lokasi</Label>
                             <Select
                                 value={formData.location}
                                 onValueChange={(val) => handleSelectChange("location", val)}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select location" />
+                                    <SelectValue placeholder="Pilih lokasi" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="On-site">On-site</SelectItem>
-                                    <SelectItem value="Remote">Remote</SelectItem>
-                                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                    <SelectItem value="On-site">Di Kantor (On-site)</SelectItem>
+                                    <SelectItem value="Remote">Jarak Jauh (Remote)</SelectItem>
+                                    <SelectItem value="Hybrid">Hibrida (Hybrid)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="salary_range">Salary Range (Optional)</Label>
+                        <Label htmlFor="salary_range">Rentang Gaji (Opsional)</Label>
                         <Input
                             id="salary_range"
                             name="salary_range"
-                            placeholder="e.g. 10jt - 15jt or 'Competitive'"
+                            placeholder="cth. 10jt - 15jt atau 'Kompetitif'"
                             value={formData.salary_range}
                             onChange={handleChange}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">Deskripsi</Label>
                         <Textarea
                             id="description"
                             name="description"
-                            placeholder="Job responsibilities and requirements..."
+                            placeholder="Tanggung jawab dan detail pekerjaan..."
                             required
                             className="min-h-[100px]"
                             value={formData.description}
@@ -178,11 +178,11 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={isLoading} className="bg-blue-900 hover:bg-blue-800">
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Post Job
+                            Posting Lowongan
                         </Button>
                     </DialogFooter>
                 </form>

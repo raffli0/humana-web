@@ -74,7 +74,7 @@ export default function LoginPage() {
             {/* Left Panel: Branding */}
             <div className="hidden lg:flex flex-col justify-between bg-[#0C212F] p-10 text-white">
                 <div>
-                    <Logo className="text-white" />
+                    <Logo className="text-white" textClassName="text-white" />
                 </div>
 
                 <div className="max-w-md space-y-4">

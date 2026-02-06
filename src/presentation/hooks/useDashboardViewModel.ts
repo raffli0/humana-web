@@ -4,6 +4,8 @@ import { attendanceRepository } from '../../infrastructure/supabase/SupabaseAtte
 import { leaveRepository } from '../../infrastructure/supabase/SupabaseLeaveRepository';
 import { payrollRepository } from '../../infrastructure/supabase/SupabasePayrollRepository';
 import { recruitmentRepository } from '../../infrastructure/supabase/SupabaseRecruitmentRepository';
+import { shiftRepository } from '../../infrastructure/supabase/SupabaseShiftRepository';
+import { overtimeRepository } from '../../infrastructure/supabase/SupabaseOvertimeRepository';
 import { authService } from '../../infrastructure/auth/authService';
 import { format, subMonths, startOfMonth, endOfMonth, isSameMonth } from 'date-fns';
 
@@ -14,9 +16,11 @@ export function useDashboardViewModel() {
     const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
     const [recruitments, setRecruitments] = useState<any[]>([]);
     const [payslips, setPayslips] = useState<any[]>([]);
+    const [pendingShifts, setPendingShifts] = useState<number>(0);
+    const [pendingOvertime, setPendingOvertime] = useState<number>(0);
     const [profile, setProfile] = useState<any>(null);
 
-    const labels = ["Karyawan", "Absensi", "Cuti", "Rekrutmen", "Payroll"];
+    const labels = ["Karyawan", "Absensi", "Cuti", "Rekrutmen", "Payroll", "Shifts", "Overtime"];
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -32,16 +36,25 @@ export function useDashboardViewModel() {
                 attendanceRepository.getAttendanceByCompanyAndDate(companyId, today),
                 leaveRepository.getLeaveRequestsByCompany(companyId),
                 recruitmentRepository.getJobPostsByCompany(companyId),
-                payrollRepository.getPayslipsByCompany(companyId)
+                payrollRepository.getPayslipsByCompany(companyId),
+                shiftRepository.getShiftSwaps(companyId),
+                overtimeRepository.getOvertimeRequests(companyId)
             ]);
 
-            const [empResult, attResult, leaveResult, recResult, payResult] = results;
+            const [empResult, attResult, leaveResult, recResult, payResult, shiftResult, overtimeResult] = results;
 
             if (empResult.status === 'fulfilled') setEmployees(empResult.value);
             if (attResult.status === 'fulfilled') setAttendance(attResult.value);
             if (leaveResult.status === 'fulfilled') setLeaveRequests(leaveResult.value);
             if (recResult.status === 'fulfilled') setRecruitments(recResult.value);
             if (payResult.status === 'fulfilled') setPayslips(payResult.value);
+
+            if (shiftResult.status === 'fulfilled') {
+                setPendingShifts(shiftResult.value.filter(s => s.status === 'pending').length);
+            }
+            if (overtimeResult.status === 'fulfilled') {
+                setPendingOvertime(overtimeResult.value.filter(o => o.status === 'pending').length);
+            }
 
             // Log failures for debugging with names
             results.forEach((res, i) => {
@@ -141,9 +154,16 @@ export function useDashboardViewModel() {
         return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
     };
 
-    const presentToday = attendance.filter(a => a.status === "Present" || a.status === "Late").length;
-    const pendingLeaves = leaveRequests.filter(lr => lr.status === "Pending" || lr.status === "Menunggu").length;
-    const openPositions = recruitments.filter(r => r.status === "Open").length;
+    const presentToday = attendance.filter(a => {
+        const status = (a.status || "").toLowerCase();
+        return status === "present" || status === "late" || status === "hadir" || status === "terlambat";
+    }).length;
+
+    const pendingLeaveCount = leaveRequests.filter(lr => lr.status === "Pending" || lr.status === "Menunggu").length;
+    // const pendingLeaves is actually the total approvals needed
+    const pendingLeaves = pendingLeaveCount + pendingShifts + pendingOvertime;
+
+    const openPositions = recruitments.filter(r => r.status === "Open" || r.status === "Dibuka").length;
 
     return {
         loading,
@@ -154,7 +174,7 @@ export function useDashboardViewModel() {
         recruitments,
         payslips,
         presentToday,
-        pendingLeaves,
+        pendingApprovals: pendingLeaves,
         openPositions,
         payrollChartData: getPayrollChartData(),
         departmentStats: getDepartmentStats(),

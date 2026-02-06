@@ -90,7 +90,7 @@ export default function ShiftManagement() {
                 </div>
                 <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                     <DialogTrigger asChild>
-                        <Button className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer">
+                        <Button className="rounded-full bg-indigo-950 hover:bg-slate-900 shadow-md text-white cursor-pointer transition-all">
                             <Plus className="mr-2 h-4 w-4" /> Tambah Shift Baru
                         </Button>
                     </DialogTrigger>
@@ -154,10 +154,18 @@ export default function ShiftManagement() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
             ) : (
-                <Tabs defaultValue="schedule" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 lg:w-[400px] mb-6">
-                        <TabsTrigger value="schedule">Jadwal Shift</TabsTrigger>
-                        <TabsTrigger value="requests" className="relative">
+                <Tabs defaultValue="schedule" className="w-full space-y-6">
+                    <TabsList className="bg-white border border-slate-200 p-1 rounded-2xl h-12 shadow-sm inline-flex">
+                        <TabsTrigger
+                            value="schedule"
+                            className="gap-2 px-6 rounded-xl data-[state=active]:bg-indigo-950 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                        >
+                            Jadwal Shift
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="requests"
+                            className="relative gap-2 px-6 rounded-xl data-[state=active]:bg-indigo-950 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                        >
                             Permintaan Tukar
                             {shiftSwaps.some(s => s.status === 'pending') && (
                                 <span className="absolute -top-1 -right-1 flex h-3 w-3">

@@ -243,7 +243,12 @@ export default function Payroll() {
                                     size="sm"
                                     className={filterStatus === status ? "bg-slate-900 border-slate-900 text-white" : "text-slate-600 border-slate-200"}
                                 >
-                                    {status}
+                                    {status === "All" ? "Semua" :
+                                        status === "Draft" ? "Draft" :
+                                            status === "Paid" ? "Dibayar" :
+                                                status === "Pending" ? "Menunggu" :
+                                                    status === "Processing" ? "Diproses" :
+                                                        status === "Failed" ? "Gagal" : status}
                                 </Button>
                             ))}
                         </div>

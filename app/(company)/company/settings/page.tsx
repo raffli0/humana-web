@@ -302,14 +302,23 @@ export default function CompanySettingsPage() {
 
 
             <Tabs defaultValue="organization" className="space-y-6">
-                <TabsList className="bg-white border">
-                    <TabsTrigger value="organization" className="gap-2">
+                <TabsList className="bg-white border border-slate-200 p-1 rounded-2xl h-12 shadow-sm inline-flex">
+                    <TabsTrigger
+                        value="organization"
+                        className="gap-2 px-6 rounded-xl data-[state=active]:bg-indigo-950 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                    >
                         <Building2 className="h-4 w-4" /> Organisasi
                     </TabsTrigger>
-                    <TabsTrigger value="location" className="gap-2">
+                    <TabsTrigger
+                        value="location"
+                        className="gap-2 px-6 rounded-xl data-[state=active]:bg-indigo-950 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                    >
                         <MapPin className="h-4 w-4" /> Lokasi Kantor
                     </TabsTrigger>
-                    <TabsTrigger value="payroll" className="gap-2">
+                    <TabsTrigger
+                        value="payroll"
+                        className="gap-2 px-6 rounded-xl data-[state=active]:bg-indigo-950 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                    >
                         <Coins className="h-4 w-4" /> Pengaturan Payroll
                     </TabsTrigger>
                 </TabsList>

@@ -294,7 +294,7 @@ export default function LeaveManagement() {
                                     <span className="text-right font-medium text-muted-foreground">Status</span>
                                     <span className="col-span-3">
                                       <Badge className={getStatusColor(request.status)}>
-                                        {request.status}
+                                        {statusLabels[request.status] || request.status}
                                       </Badge>
                                     </span>
                                   </div>

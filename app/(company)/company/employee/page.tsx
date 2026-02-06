@@ -467,7 +467,7 @@ export default function Employees() {
                         {viewEmployee.position || "Tanpa Posisi"}
                       </Badge>
                       <Badge className={viewEmployee.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                        {viewEmployee.status === "Checking In" ? "Hadir" : (viewEmployee.status || "Tidak Aktif")}
+                        {viewEmployee.status === "Checking In" ? "Hadir" : viewEmployee.status === "Active" ? "Aktif" : (viewEmployee.status || "Tidak Aktif")}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground pt-1">ID/NIK: <span className="font-mono text-xs text-indigo-700 font-semibold">{viewEmployee.employee_code || viewEmployee.id}</span></p>
@@ -552,7 +552,7 @@ export default function Employees() {
                         }`}
                       size="sm"
                     >
-                      {dept}
+                      {dept === "All" ? "Semua" : dept}
                     </Button>
                   ))}
                 </div>
@@ -604,14 +604,12 @@ export default function Employees() {
                         {employee.email}
                       </div>
 
-                      {employee.phone && (
-                        <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
-                          <span className="flex items-center gap-2">
-                            <Phone className="w-3.5 h-3.5" /> Telepon
-                          </span>
-                          <span className="text-gray-900">{employee.phone}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between text-sm text-gray-500 pt-2">
+                        <span className="flex items-center gap-2">
+                          <Phone className="w-3.5 h-3.5" /> Telepon
+                        </span>
+                        <span className="text-gray-900">{employee.phone || "Tidak tersedia"}</span>
+                      </div>
                     </div>
 
                     <div className="w-full mt-6">

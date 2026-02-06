@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "./utils";
 
 interface LogoProps extends React.SVGProps<SVGSVGElement> {
     iconOnly?: boolean;
@@ -6,9 +7,9 @@ interface LogoProps extends React.SVGProps<SVGSVGElement> {
     showText?: boolean;
 }
 
-export const Logo = ({ className = "", iconOnly = false, showText = true, ...props }: LogoProps) => {
+export const Logo = ({ className = "", iconOnly = false, showText = true, textClassName = "", ...props }: LogoProps & { textClassName?: string }) => {
     return (
-        <div className={`flex items-center gap-2 ${className}`}>
+        <div className={cn("flex items-center gap-2", className)}>
             <svg
                 width="32"
                 height="32"
@@ -40,7 +41,7 @@ export const Logo = ({ className = "", iconOnly = false, showText = true, ...pro
             </svg>
 
             {showText && !iconOnly && (
-                <span className="font-bold text-xl tracking-tight text-[#0C212F] dark:text-white">
+                <span className={cn("font-bold text-xl tracking-tight text-[#0C212F] dark:text-white", textClassName)}>
                     Humana
                 </span>
             )}

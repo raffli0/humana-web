@@ -12,23 +12,66 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { ProfileDropdown } from "./profile-dropdown";
 
 
+import { shiftRepository } from '@/src/infrastructure/supabase/SupabaseShiftRepository';
+import { Logo } from "./logo";
+import { overtimeRepository } from "@/src/infrastructure/supabase/SupabaseOvertimeRepository";
+import { leaveRepository } from "@/src/infrastructure/supabase/SupabaseLeaveRepository";
+import { recruitmentRepository } from "@/src/infrastructure/supabase/SupabaseRecruitmentRepository";
+import { payrollRepository } from "@/src/infrastructure/supabase/SupabasePayrollRepository";
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [notificationCounts, setNotificationCounts] = useState({
+    shifts: 0,
+    overtime: 0,
+    leave: 0,
+    recruitment: 0,
+    payroll: 0,
+    employees: 0,
+    dashboard: 0,
+    attendance: 0
+  });
 
   const isPlatform = pathname.startsWith("/platform");
 
   useEffect(() => {
-    async function fetchProfile() {
+    async function fetchData() {
       const profile = await authService.getCurrentProfile();
       if (profile) {
         setProfile(profile);
+
+        // Check for pending notifications if in company mode
+        if (!pathname.startsWith("/platform") && profile.company_id) {
+          try {
+            const [swaps, overtime, leave, candidates, payslips] = await Promise.all([
+              shiftRepository.getShiftSwaps(profile.company_id),
+              overtimeRepository.getOvertimeRequests(profile.company_id),
+              leaveRepository.getLeaveRequestsByCompany(profile.company_id),
+              recruitmentRepository.getCandidatesByCompany(profile.company_id),
+              payrollRepository.getPayslipsByCompany(profile.company_id)
+            ]);
+
+            setNotificationCounts({
+              shifts: swaps.filter(s => s.status === 'pending').length,
+              overtime: overtime.filter(r => r.status === 'pending').length,
+              leave: leave.filter(l => l.status === 'Pending' || l.status === 'pending').length,
+              recruitment: candidates.filter(c => c.status === 'New' || c.status === 'new' || c.status === 'Applied' || c.status === 'applied').length,
+              payroll: payslips.filter(p => p.status === 'Draft' || p.status === 'Pending' || p.status === 'draft' || p.status === 'pending').length,
+              employees: 0,
+              dashboard: 0,
+              attendance: 0
+            });
+          } catch (error) {
+            console.error("Failed to check notifications:", error);
+          }
+        }
       }
     }
-    fetchProfile();
-  }, []);
+    fetchData();
+  }, [pathname]);
 
   // Hide Navbar on login and register pages
   if (pathname === "/login" || pathname === "/register") {
@@ -50,12 +93,9 @@ export default function Navbar() {
 
         {/* Logo */}
         <div>
-          <div className="flex items-center gap-2 font-semibold text-xl">
-            <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
-              <span className="text-white font-bold">H</span>
-            </div>
-            <span className="text-white font-semibold">Humana</span>
-          </div>
+          <Link href="/company/dashboard" className="flex items-center gap-2">
+            <Logo className="text-white scale-75 origin-left" textClassName="text-white" />
+          </Link>
         </div>
 
         {/* Desktop nav */}
@@ -65,19 +105,38 @@ export default function Navbar() {
               const Icon = item.icon;
               const active = pathname === item.href;
 
+              let badgeCount = 0;
+              if (!isPlatform) {
+                if (item.href === "/company/shifts") badgeCount = notificationCounts.shifts;
+                if (item.href === "/company/overtime") badgeCount = notificationCounts.overtime;
+                if (item.href === "/company/leave") badgeCount = notificationCounts.leave;
+                if (item.href === "/company/recruitment") badgeCount = notificationCounts.recruitment;
+                if (item.href === "/company/payroll") badgeCount = notificationCounts.payroll;
+              }
+
               return (
                 <Tooltip.Root key={item.href}>
                   <Tooltip.Trigger asChild>
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center justify-center gap-2",
+                        "relative flex items-center justify-center gap-2",
                         "h-10 px-3 rounded-full transition-all cursor-pointer select-none",
                         "hover:bg-white/10 hover:text-white",
                         active ? "bg-white text-black font-semibold" : "text-white/60"
                       )}
                     >
                       <Icon className="w-5 h-5 translate-y-[0.5px]" />
+
+                      {/* Notification Badge */}
+                      {badgeCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border border-[#0C212F] items-center justify-center text-[9px] font-bold text-white">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        </span>
+                      )}
 
                       {/* Label hanya saat active */}
                       {active && (
