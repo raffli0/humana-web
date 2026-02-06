@@ -22,6 +22,43 @@ export class AuthService {
         return data;
     }
 
+    async updateProfile(id: string, updates: Partial<Profile>) {
+        const { data, error } = await supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) throw error;
+        return data;
+    }
+
+    async updateEmail(email: string) {
+        const { data, error } = await supabase.auth.updateUser({ email });
+        if (error) throw error;
+        return data;
+    }
+
+    async uploadAvatar(userId: string, file: File): Promise<string> {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}-${Math.random()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('profiles')
+            .upload(filePath, file, {
+                contentType: file.type,
+                upsert: true
+            });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('profiles')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    }
+
     async signOut() {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;

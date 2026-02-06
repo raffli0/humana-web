@@ -91,7 +91,7 @@ export default function LandingPage() {
                         >
                             <motion.div variants={fadeInUp}>
                                 <Badge variant="outline" className="mb-6 px-4 py-1.5 border-[#0C212F]/20 text-[#0C212F] font-semibold text-xs tracking-wider uppercase bg-blue-50/50">
-                                    Enterprise HR Control
+                                    Kontrol HR Enterprise
                                 </Badge>
                             </motion.div>
                             <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl font-bold tracking-tight text-[#0C212F] leading-[1.15] mb-8">
@@ -341,14 +341,14 @@ export default function LandingPage() {
                                     <div className="flex gap-4 items-start p-6 bg-zinc-50 rounded-2xl border border-zinc-100 hover:bg-white hover:shadow-lg transition-all cursor-default">
                                         <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                                         <div>
-                                            <p className="font-bold text-[#0C212F]">Traceability</p>
+                                            <p className="font-bold text-[#0C212F]">Ketertelusuran</p>
                                             <p className="text-sm text-zinc-500">Rekaman jejak permanen untuk setiap tindakan administratif.</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-4 items-start p-6 bg-zinc-50 rounded-2xl border border-zinc-100 hover:bg-white hover:shadow-lg transition-all cursor-default">
                                         <Lock className="w-6 h-6 text-emerald-600 shrink-0" />
                                         <div>
-                                            <p className="font-bold text-[#0C212F]">Role-Based Control</p>
+                                            <p className="font-bold text-[#0C212F]">Kontrol Berbasis Peran</p>
                                             <p className="text-sm text-zinc-500">Izin akses yang disesuaikan dengan tanggung jawab jabatan.</p>
                                         </div>
                                     </div>
@@ -359,7 +359,7 @@ export default function LandingPage() {
                                 <FileText className="w-20 h-20 text-white/20 mx-auto mb-10 group-hover:scale-110 transition-transform duration-300" />
                                 <h4 className="text-2xl font-bold mb-6 italic relative z-10">"Laporan Siap Audit dengan Satu Klik"</h4>
                                 <p className="text-white/40 mb-10 text-sm leading-relaxed relative z-10">Ekspor data absensi ke format Excel/PDF yang akurat untuk kebutuhan payroll dan kepatuhan regulasi.</p>
-                                <Badge variant="outline" className="border-white/20 text-white font-mono text-xs uppercase relative z-10">Logs Protected</Badge>
+                                <Badge variant="outline" className="border-white/20 text-white font-mono text-xs uppercase relative z-10">Log Terjamin</Badge>
                             </div>
                         </motion.div>
                     </div>

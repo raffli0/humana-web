@@ -12,6 +12,7 @@ import {
     Save,
     Coins,
 } from "lucide-react";
+import { Skeleton } from "../../../components/ui/skeleton";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -104,7 +105,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                 <CardContent className="p-5 pt-3 space-y-6">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Base Salary</Label>
+                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Gaji Pokok</Label>
                             <div className="relative group/input">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold bg-slate-50 h-full flex items-center px-2 border-r rounded-l-md group-focus-within/input:text-indigo-600 transition-colors">IDR</span>
                                 <Input
@@ -121,7 +122,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transport</Label>
+                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Transportasi</Label>
                                 <div className="relative">
                                     <Input
                                         type="number"
@@ -136,7 +137,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Meal</Label>
+                                <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Uang Makan</Label>
                                 <div className="relative">
                                     <Input
                                         type="number"
@@ -152,7 +153,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Position Allowance</Label>
+                            <Label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tunjangan Jabatan</Label>
                             <div className="relative">
                                 <Input
                                     type="number"
@@ -170,7 +171,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
 
                     <div className="pt-4 border-t border-dashed border-slate-100 flex items-center justify-between">
                         <div className="flex flex-col">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Monthly</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Bulanan</span>
                             <span className="text-sm font-bold text-indigo-600">IDR {total.toLocaleString()}</span>
                         </div>
                         <AnimatePresence>
@@ -187,7 +188,7 @@ function PositionPayrollCard({ pos, onUpdate }: PositionPayrollCardProps) {
                                         disabled={isSaving}
                                     >
                                         {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                                        Save
+                                        Simpan
                                     </Button>
                                 </motion.div>
                             )}
@@ -236,9 +237,47 @@ export default function CompanySettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
+            <main className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-9 w-64 bg-slate-200" />
+                        <Skeleton className="h-4 w-96 bg-slate-100" />
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-32 bg-slate-200" />
+                        <Skeleton className="h-10 w-32 bg-slate-100" />
+                        <Skeleton className="h-10 w-32 bg-slate-100" />
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+                            <CardHeader>
+                                <Skeleton className="h-6 w-32 bg-slate-200" />
+                                <Skeleton className="h-4 w-48 bg-slate-100 mt-2" />
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                            </CardContent>
+                        </Card>
+                        <Card className="border-none shadow-sm ring-1 ring-gray-200">
+                            <CardHeader>
+                                <Skeleton className="h-6 w-32 bg-slate-200" />
+                                <Skeleton className="h-4 w-48 bg-slate-100 mt-2" />
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                                <Skeleton className="h-12 w-full bg-slate-50" />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </main>
         );
     }
 
@@ -247,8 +286,8 @@ export default function CompanySettingsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Company Settings</h1>
-                    <p className="text-muted-foreground mt-1">Manage departments, positions, and office location.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Pengaturan Perusahaan</h1>
+                    <p className="text-muted-foreground mt-1">Kelola departemen, posisi, dan lokasi kantor.</p>
                 </div>
             </div>
 
@@ -265,13 +304,13 @@ export default function CompanySettingsPage() {
             <Tabs defaultValue="organization" className="space-y-6">
                 <TabsList className="bg-white border">
                     <TabsTrigger value="organization" className="gap-2">
-                        <Building2 className="h-4 w-4" /> Organization
+                        <Building2 className="h-4 w-4" /> Organisasi
                     </TabsTrigger>
                     <TabsTrigger value="location" className="gap-2">
-                        <MapPin className="h-4 w-4" /> Office Location
+                        <MapPin className="h-4 w-4" /> Lokasi Kantor
                     </TabsTrigger>
                     <TabsTrigger value="payroll" className="gap-2">
-                        <Coins className="h-4 w-4" /> Payroll Settings
+                        <Coins className="h-4 w-4" /> Pengaturan Payroll
                     </TabsTrigger>
                 </TabsList>
 
@@ -283,27 +322,27 @@ export default function CompanySettingsPage() {
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Users className="h-5 w-5" /> Departments
+                                        <Users className="h-5 w-5" /> Departemen
                                     </CardTitle>
-                                    <CardDescription>Organize your team by departments</CardDescription>
+                                    <CardDescription>Atur tim Anda berdasarkan departemen</CardDescription>
                                 </div>
                                 <Dialog open={isAddDeptOpen} onOpenChange={setIsAddDeptOpen}>
                                     <DialogTrigger asChild>
                                         <Button size="sm" className="gap-1">
-                                            <Plus className="h-4 w-4" /> Add
+                                            <Plus className="h-4 w-4" /> Tambah
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Add Department</DialogTitle>
+                                            <DialogTitle>Tambah Departemen</DialogTitle>
                                         </DialogHeader>
                                         <div className="space-y-4 py-4">
                                             <div className="space-y-2">
-                                                <Label>Department Name</Label>
+                                                <Label>Nama Departemen</Label>
                                                 <Input
                                                     value={newDeptName}
                                                     onChange={(e) => setNewDeptName(e.target.value)}
-                                                    placeholder="e.g., Engineering"
+                                                    placeholder="misal: Engineering"
                                                 />
                                             </div>
                                         </div>
@@ -312,7 +351,7 @@ export default function CompanySettingsPage() {
                                                 await addDepartment(newDeptName);
                                                 setNewDeptName("");
                                                 setIsAddDeptOpen(false);
-                                            }}>Add Department</Button>
+                                            }}>Tambah Departemen</Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
@@ -320,7 +359,7 @@ export default function CompanySettingsPage() {
                             <CardContent>
                                 {departments.length === 0 ? (
                                     <p className="text-sm text-muted-foreground text-center py-8">
-                                        No departments yet. Add one to get started.
+                                        Belum ada departemen. Tambah departemen untuk memulai.
                                     </p>
                                 ) : (
                                     <div className="space-y-2">
@@ -350,34 +389,34 @@ export default function CompanySettingsPage() {
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Briefcase className="h-5 w-5" /> Positions
+                                        <Briefcase className="h-5 w-5" /> Posisi
                                     </CardTitle>
-                                    <CardDescription>Job titles and roles</CardDescription>
+                                    <CardDescription>Jabatan dan peran</CardDescription>
                                 </div>
                                 <Dialog open={isAddPosOpen} onOpenChange={setIsAddPosOpen}>
                                     <DialogTrigger asChild>
                                         <Button size="sm" className="gap-1">
-                                            <Plus className="h-4 w-4" /> Add
+                                            <Plus className="h-4 w-4" /> Tambah
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Add Position</DialogTitle>
+                                            <DialogTitle>Tambah Posisi</DialogTitle>
                                         </DialogHeader>
                                         <div className="space-y-4 py-4">
                                             <div className="space-y-2">
-                                                <Label>Position Name</Label>
+                                                <Label>Nama Posisi</Label>
                                                 <Input
                                                     value={newPosName}
                                                     onChange={(e) => setNewPosName(e.target.value)}
-                                                    placeholder="e.g., Software Engineer"
+                                                    placeholder="misal: Software Engineer"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Department (Optional)</Label>
+                                                <Label>Departemen (Opsional)</Label>
                                                 <Select value={newPosDeptId} onValueChange={setNewPosDeptId}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select department" />
+                                                        <SelectValue placeholder="Pilih departemen" />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {departments.map((dept) => (
@@ -395,7 +434,7 @@ export default function CompanySettingsPage() {
                                                 setNewPosName("");
                                                 setNewPosDeptId("");
                                                 setIsAddPosOpen(false);
-                                            }}>Add Position</Button>
+                                            }}>Tambah Posisi</Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
@@ -403,7 +442,7 @@ export default function CompanySettingsPage() {
                             <CardContent>
                                 {positions.length === 0 ? (
                                     <p className="text-sm text-muted-foreground text-center py-8">
-                                        No positions yet. Add one to get started.
+                                        Belum ada posisi. Tambah posisi untuk memulai.
                                     </p>
                                 ) : (
                                     <div className="space-y-2">
@@ -446,25 +485,25 @@ export default function CompanySettingsPage() {
                         <Card className="border-none shadow-sm ring-1 ring-gray-200 h-fit">
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center gap-2">
-                                    <MapPin className="h-5 w-5" /> Office Geolocation
+                                    <MapPin className="h-5 w-5" /> Geolokasi Kantor
                                 </CardTitle>
                                 <CardDescription>
-                                    Set your office location for attendance geofencing
+                                    Atur lokasi kantor untuk pembatasan wilayah (geofencing) absensi
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="space-y-2">
-                                    <Label>Office Address</Label>
+                                    <Label>Alamat Kantor</Label>
                                     <Input
                                         value={settings.office_address || ""}
                                         onChange={(e) => updateLocationSettings({ office_address: e.target.value })}
-                                        placeholder="e.g., Jl. Sudirman No. 123, Jakarta"
+                                        placeholder="misal: Jl. Sudirman No. 123, Jakarta"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>Latitude</Label>
+                                        <Label>Garis Lintang (Latitude)</Label>
                                         <Input
                                             type="number"
                                             step="any"
@@ -474,7 +513,7 @@ export default function CompanySettingsPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Longitude</Label>
+                                        <Label>Garis Bujur (Longitude)</Label>
                                         <Input
                                             type="number"
                                             step="any"
@@ -486,7 +525,7 @@ export default function CompanySettingsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Allowed Radius (meters)</Label>
+                                    <Label>Radius yang Diizinkan (meter)</Label>
                                     <Input
                                         type="number"
                                         value={settings.office_radius_meters ?? ""}
@@ -499,21 +538,21 @@ export default function CompanySettingsPage() {
                                         placeholder="100"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Employees must be within this radius to clock in/out
+                                        Karyawan harus berada dalam radius ini untuk melakukan absensi
                                     </p>
                                 </div>
 
                                 <Button onClick={saveLocationSettings} disabled={saving} className="w-full gap-2">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                                    Save Location Settings
+                                    Simpan Pengaturan Lokasi
                                 </Button>
                             </CardContent>
                         </Card>
 
                         <Card className="border-none shadow-sm ring-1 ring-gray-200">
                             <CardHeader>
-                                <CardTitle className="text-lg">Map View</CardTitle>
-                                <CardDescription>Select location on map</CardDescription>
+                                <CardTitle className="text-lg">Tampilan Peta</CardTitle>
+                                <CardDescription>Pilih lokasi di peta</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <LocationPickerMap
@@ -533,10 +572,10 @@ export default function CompanySettingsPage() {
                     <Card className="border-none shadow-sm ring-1 ring-gray-200">
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <Coins className="h-5 w-5" /> Position Payroll Configuration
+                                <Coins className="h-5 w-5" /> Konfigurasi Payroll Posisi
                             </CardTitle>
                             <CardDescription>
-                                Set standard base salary and allowances for each role. (Amounts in local currency)
+                                Atur gaji pokok standar dan tunjangan untuk setiap peran. (Jumlah dalam mata uang lokal)
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -544,7 +583,7 @@ export default function CompanySettingsPage() {
                                 <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
                                     <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                                     <p className="text-sm font-medium text-slate-500">
-                                        No departments found. Create departments first to manage payroll by position.
+                                        Departemen tidak ditemukan. Buat departemen terlebih dahulu untuk mengelola payroll berdasarkan posisi.
                                     </p>
                                 </div>
                             ) : (
@@ -583,14 +622,14 @@ export default function CompanySettingsPage() {
             <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the <strong>{deleteTarget?.name}</strong> {deleteTarget?.type} and
-                            automatically remove it from any assigned employees. This action cannot be undone.
+                            Tindakan ini akan menghapus permanen <strong>{deleteTarget?.name}</strong> {deleteTarget?.type === 'department' ? 'departemen' : 'posisi'} dan
+                            secara otomatis menghapusnya dari karyawan yang ditugaskan. Tindakan ini tidak dapat dibatalkan.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                             onClick={async () => {
@@ -603,7 +642,7 @@ export default function CompanySettingsPage() {
                                 setDeleteTarget(null);
                             }}
                         >
-                            Delete {deleteTarget?.type === 'department' ? 'Department' : 'Position'}
+                            Hapus {deleteTarget?.type === 'department' ? 'Departemen' : 'Posisi'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

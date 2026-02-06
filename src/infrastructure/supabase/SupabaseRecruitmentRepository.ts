@@ -44,6 +44,24 @@ export class SupabaseRecruitmentRepository implements IRecruitmentRepository {
 
         if (error) throw error;
     }
+
+    async updateJobStatus(jobId: string, status: string): Promise<void> {
+        const { error } = await supabase
+            .from('recruitments')
+            .update({ status })
+            .eq('id', jobId);
+
+        if (error) throw error;
+    }
+
+    async updateJobPost(jobId: string, job: Partial<JobPost>): Promise<void> {
+        const { error } = await supabase
+            .from('recruitments')
+            .update(job)
+            .eq('id', jobId);
+
+        if (error) throw error;
+    }
 }
 
 export const recruitmentRepository = new SupabaseRecruitmentRepository();

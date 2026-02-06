@@ -5,4 +5,6 @@ export interface IRecruitmentRepository {
     getCandidatesByCompany(companyId: string): Promise<Candidate[]>;
     updateCandidateStatus(candidateId: string, status: string): Promise<void>;
     createJobPost(job: Partial<JobPost>): Promise<void>;
+    updateJobStatus(jobId: string, status: string): Promise<void>;
+    updateJobPost(jobId: string, job: Partial<JobPost>): Promise<void>;
 }

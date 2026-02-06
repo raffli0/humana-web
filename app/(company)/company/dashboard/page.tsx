@@ -116,9 +116,6 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="rounded-full">
-            <Search className="h-4 w-4 text-gray-500" />
-          </Button>
           <Button variant="outline" size="icon" className="rounded-full relative">
             <Bell className="h-4 w-4 text-gray-500" />
             <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
@@ -134,8 +131,20 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="xl:col-span-2 space-y-8">
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+            <div className="space-y-8">
+              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-[200px] w-full" />
+            </div>
+          </div>
         </div>
       ) : (
         <>

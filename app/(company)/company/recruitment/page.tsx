@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Plus, MapPin, Briefcase, Users, Calendar, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
@@ -14,6 +15,7 @@ import { JobPost, Candidate } from "@/src/domain/recruitment/recruitment";
 import { CreateJobDialog } from "./components/CreateJobDialog";
 
 export default function Recruitment() {
+    const router = useRouter();
     const {
         jobPosts: recruitments,
         candidates,
@@ -46,14 +48,14 @@ export default function Recruitment() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Recruitment</h1>
-                    <p className="text-muted-foreground mt-1">Manage job postings and applicant tracking.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Rekrutmen</h1>
+                    <p className="text-muted-foreground mt-1">Kelola lowongan pekerjaan dan pelacakan pelamar.</p>
                 </div>
                 <Button
                     className="rounded-full bg-blue-900 hover:bg-blue-800 text-white cursor-pointer"
                     onClick={() => setIsCreateOpen(true)}
                 >
-                    <Plus className="w-4 h-4" /> Post New Job
+                    <Plus className="w-4 h-4" /> Posting Lowongan Baru
                 </Button>
             </div>
 
@@ -74,7 +76,7 @@ export default function Recruitment() {
                         <Card className="border-none shadow-sm ring-1 ring-gray-200">
                             <CardContent className="p-6 flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Open Positions</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Posisi Terbuka</p>
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{openPositions}</p>
                                 </div>
                                 <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
@@ -85,7 +87,7 @@ export default function Recruitment() {
                         <Card className="border-none shadow-sm ring-1 ring-gray-200">
                             <CardContent className="p-6 flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Total Applicants</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Total Pelamar</p>
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{totalApplicants}</p>
                                 </div>
                                 <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
@@ -96,7 +98,7 @@ export default function Recruitment() {
                         <Card className="border-none shadow-sm ring-1 ring-gray-200">
                             <CardContent className="p-6 flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Closed Positions</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Posisi Ditutup</p>
                                     <p className="text-2xl font-bold text-gray-900 mt-1">{closedPositions}</p>
                                 </div>
                                 <div className="h-10 w-10 bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center">
@@ -113,7 +115,7 @@ export default function Recruitment() {
                                 <div className="relative flex-1 w-full">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <Input
-                                        placeholder="Search by job title or department..."
+                                        placeholder="Cari berdasarkan judul pekerjaan atau departemen..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-10 bg-slate-50 border-slate-200"
@@ -187,13 +189,24 @@ export default function Recruitment() {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <p className="text-xs text-muted-foreground font-medium">{candidates.filter(c => c.job_id === job.id).length} Applicants</p>
+                                            <p className="text-xs text-muted-foreground font-medium">{candidates.filter(c => c.job_id === job.id).length} Pelamar</p>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" className="h-8">Details</Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8"
+                                                onClick={() => router.push(`/company/recruitment/${job.id}`)}
+                                            >
+                                                Detail
+                                            </Button>
                                             {job.status === "Open" && (
-                                                <Button size="sm" className="h-8 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-none">
-                                                    View Applicants
+                                                <Button
+                                                    size="sm"
+                                                    className="h-8 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-none"
+                                                    onClick={() => router.push(`/company/recruitment/${job.id}/applicants`)}
+                                                >
+                                                    Lihat Pelamar
                                                 </Button>
                                             )}
                                         </div>
@@ -206,7 +219,7 @@ export default function Recruitment() {
                     {filteredJobs.length === 0 && (
                         <Card className="border-dashed shadow-none bg-transparent">
                             <CardContent className="p-12 text-center">
-                                <p className="text-gray-500">No job positions found.</p>
+                                <p className="text-gray-500">Tidak ada lowongan pekerjaan ditemukan.</p>
                             </CardContent>
                         </Card>
                     )}

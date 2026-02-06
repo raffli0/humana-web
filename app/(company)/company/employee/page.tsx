@@ -38,6 +38,7 @@ import {
 } from "@/app/components/ui/alert-dialog";
 
 import { authService } from "@/src/infrastructure/auth/authService";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { useEmployeeViewModel } from "@/src/presentation/hooks/useEmployeeViewModel";
 import { Employee } from "@/src/domain/employee/employee";
 
@@ -518,8 +519,11 @@ export default function Employees() {
       </Dialog>
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="space-y-8">
+          <Skeleton className="h-16 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <Skeleton key={i} className="h-64 w-full" />)}
+          </div>
         </div>
       ) : (
         <>

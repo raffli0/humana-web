@@ -9,7 +9,7 @@ import {
 
 export const platformNav = [
     { name: "Dashboard", href: "/platform/dashboard", icon: LayoutDashboard },
-    { name: "Companies", href: "/platform/companies", icon: Building2 },
-    { name: "System Settings", href: "/platform/settings", icon: Settings },
-    { name: "Admin Roles", href: "/platform/admin-roles", icon: Shield },
+    { name: "Perusahaan", href: "/platform/companies", icon: Building2 },
+    { name: "Pengaturan Sistem", href: "/platform/settings", icon: Settings },
+    { name: "Peran Admin", href: "/platform/admin-roles", icon: Shield },
 ];

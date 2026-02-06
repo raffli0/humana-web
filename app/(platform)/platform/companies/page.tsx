@@ -14,6 +14,7 @@ import {
     Copy,
     CheckCircle
 } from "lucide-react"
+import { Skeleton } from "../../../components/ui/skeleton"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
 import { Input } from "../../../components/ui/input"
@@ -198,34 +199,34 @@ export default function CompanyManagement() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Company Management</h1>
-                    <p className="text-muted-foreground mt-1">Manage tenants and their subscription plans.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Manajemen Perusahaan</h1>
+                    <p className="text-muted-foreground mt-1">Kelola penyewa dan paket langganan mereka.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" className="gap-2 bg-white">
-                        <Download className="h-4 w-4" /> Export
+                        <Download className="h-4 w-4" /> Ekspor
                     </Button>
                     <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setInvitationLink(null) }}>
                         <DialogTrigger asChild>
                             <Button className="bg-[#0C212F] hover:bg-[#0C212F]/90 gap-2">
-                                <Plus className="h-4 w-4" /> Register Company
+                                <Plus className="h-4 w-4" /> Daftar Perusahaan
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Register New Company</DialogTitle>
+                                <DialogTitle>Daftar Perusahaan Baru</DialogTitle>
                                 <DialogDescription>
-                                    Create a company and invite its admin.
+                                    Buat perusahaan dan undang adminnya.
                                 </DialogDescription>
                             </DialogHeader>
                             {invitationLink ? (
                                 <div className="space-y-4 py-4">
                                     <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
                                         <CheckCircle className="h-5 w-5 text-green-600" />
-                                        <span className="text-green-800 text-sm font-medium">Company created successfully!</span>
+                                        <span className="text-green-800 text-sm font-medium">Perusahaan berhasil dibuat!</span>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Activation Link</Label>
+                                        <Label>Tautan Aktivasi</Label>
                                         <div className="flex gap-2">
                                             <Input value={invitationLink} readOnly className="text-xs" />
                                             <Button variant="outline" size="icon" onClick={() => copyToClipboard(invitationLink)}>
@@ -233,31 +234,31 @@ export default function CompanyManagement() {
                                             </Button>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Share this link with the company admin. Valid for 48 hours.
+                                            Bagikan tautan ini kepada admin perusahaan. Berlaku selama 48 jam.
                                         </p>
                                     </div>
                                     <Button className="w-full" onClick={() => { setIsCreateOpen(false); setInvitationLink(null) }}>
-                                        Done
+                                        Selesai
                                     </Button>
                                 </div>
                             ) : (
                                 <form onSubmit={handleCreateCompany} className="space-y-4 py-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="companyName">Company Name</Label>
-                                        <Input id="companyName" name="companyName" placeholder="PT Example Indonesia" required />
+                                        <Label htmlFor="companyName">Nama Perusahaan</Label>
+                                        <Input id="companyName" name="companyName" placeholder="PT Contoh Indonesia" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="adminName">Admin Full Name</Label>
+                                        <Label htmlFor="adminName">Nama Lengkap Admin</Label>
                                         <Input id="adminName" name="adminName" placeholder="John Doe" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="adminEmail">Admin Email</Label>
-                                        <Input id="adminEmail" name="adminEmail" type="email" placeholder="admin@example.com" required />
+                                        <Label htmlFor="adminEmail">Email Admin</Label>
+                                        <Input id="adminEmail" name="adminEmail" type="email" placeholder="admin@contoh.com" required />
                                     </div>
                                     <DialogFooter>
                                         <Button type="submit" className="w-full bg-[#0C212F]" disabled={isSubmitting}>
                                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                            Create & Send Invitation
+                                            Buat & Kirim Undangan
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -274,7 +275,7 @@ export default function CompanyManagement() {
                         <div className="relative flex-1 w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="Search companies by name..."
+                                placeholder="Cari perusahaan berdasarkan nama..."
                                 className="pl-10 bg-slate-50 border-slate-200"
                             />
                         </div>
@@ -291,23 +292,39 @@ export default function CompanyManagement() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-slate-50 hover:bg-slate-50">
-                                <TableHead className="w-[300px]">Company</TableHead>
+                                <TableHead className="w-[300px]">Perusahaan</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Created</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead>Dibuat</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8">
-                                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                                    </TableCell>
-                                </TableRow>
+                                <>
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <TableRow key={i}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <Skeleton className="h-9 w-9 rounded-lg" />
+                                                    <Skeleton className="h-4 w-40" />
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className="h-6 w-16 rounded-full" />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className="h-4 w-24" />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Skeleton className="h-8 w-8 ml-auto" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </>
                             ) : companies.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                                        No companies registered yet.
+                                        Belum ada perusahaan yang terdaftar.
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -325,7 +342,7 @@ export default function CompanyManagement() {
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={company.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-                                                {company.status}
+                                                {company.status === "active" ? "aktif" : company.status}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-gray-600 text-sm">
@@ -340,10 +357,10 @@ export default function CompanyManagement() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => { setSelectedCompany(company); setIsInviteOpen(true) }}>
-                                                        <Mail className="h-4 w-4 mr-2" /> Invite Admin
+                                                        <Mail className="h-4 w-4 mr-2" /> Undang Admin
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem>Edit Company</DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-red-600">Suspend Access</DropdownMenuItem>
+                                                    <DropdownMenuItem>Edit Perusahaan</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-red-600">Tangguhkan Akses</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -355,23 +372,22 @@ export default function CompanyManagement() {
                 </CardContent>
             </Card>
 
-            {/* Invite Admin Dialog */}
             <Dialog open={isInviteOpen} onOpenChange={(open) => { setIsInviteOpen(open); if (!open) { setSelectedCompany(null); setInvitationLink(null) } }}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Invite Company Admin</DialogTitle>
+                        <DialogTitle>Undang Admin Perusahaan</DialogTitle>
                         <DialogDescription>
-                            Send an invitation to {selectedCompany?.name}
+                            Kirim undangan ke {selectedCompany?.name}
                         </DialogDescription>
                     </DialogHeader>
                     {invitationLink ? (
                         <div className="space-y-4 py-4">
                             <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
                                 <CheckCircle className="h-5 w-5 text-green-600" />
-                                <span className="text-green-800 text-sm font-medium">Invitation sent!</span>
+                                <span className="text-green-800 text-sm font-medium">Undangan terkirim!</span>
                             </div>
                             <div className="space-y-2">
-                                <Label>Activation Link</Label>
+                                <Label>Tautan Aktivasi</Label>
                                 <div className="flex gap-2">
                                     <Input value={invitationLink} readOnly className="text-xs" />
                                     <Button variant="outline" size="icon" onClick={() => copyToClipboard(invitationLink)}>
@@ -380,23 +396,23 @@ export default function CompanyManagement() {
                                 </div>
                             </div>
                             <Button className="w-full" onClick={() => { setIsInviteOpen(false); setInvitationLink(null) }}>
-                                Done
+                                Selesai
                             </Button>
                         </div>
                     ) : (
                         <form onSubmit={handleInviteAdmin} className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="adminName">Full Name</Label>
+                                <Label htmlFor="adminName">Nama Lengkap</Label>
                                 <Input id="adminName" name="adminName" placeholder="John Doe" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="adminEmail">Email</Label>
-                                <Input id="adminEmail" name="adminEmail" type="email" placeholder="admin@example.com" required />
+                                <Input id="adminEmail" name="adminEmail" type="email" placeholder="admin@contoh.com" required />
                             </div>
                             <DialogFooter>
                                 <Button type="submit" className="w-full bg-[#0C212F]" disabled={isSubmitting}>
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Send Invitation
+                                    Kirim Undangan
                                 </Button>
                             </DialogFooter>
                         </form>

@@ -1,6 +1,14 @@
 "use client";
 
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuPortal,
+} from "./dropdown-menu";
 import {
   ChevronDown,
   User,
@@ -8,7 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import NextImage from "next/image";
-import { Avatar, AvatarImage, AvatarFallback } from "./avatar";
+import { Avatar, AvatarFallback } from "./avatar";
 import { cn } from "./utils";
 
 interface ProfileDropdownProps {
@@ -29,8 +37,8 @@ export function ProfileDropdown({
   onLogout,
 }: ProfileDropdownProps) {
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <button
           className={cn(
             "flex items-center gap-2 rounded-full px-2 py-1",
@@ -70,54 +78,45 @@ export function ProfileDropdown({
 
           <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
         </button>
-      </DropdownMenu.Trigger>
+      </DropdownMenuTrigger>
 
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          side="bottom"
-          align="end"
-          sideOffset={8}
-          className={cn(
-            "z-[9999] min-w-[220px] rounded-xl border border-slate-800",
-            "bg-slate-900 text-slate-100 shadow-xl p-1",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in data-[state=closed]:fade-out",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95"
-          )}
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="z-[9999] min-w-[220px] bg-slate-900 border-slate-800 text-slate-100"
+      >
+        {/* User Info */}
+        <div className="px-3 py-2 border-b border-slate-800 mb-1">
+          <p className="text-sm font-semibold text-white">{name}</p>
+          <p className="text-xs text-slate-400">{email}</p>
+        </div>
+
+        <DropdownMenuItem
+          onSelect={onProfile}
+          className="cursor-pointer focus:bg-slate-800 focus:text-white gap-2"
         >
-          {/* User Info */}
-          <div className="px-3 py-2 border-b border-slate-800">
-            <p className="text-sm font-semibold">{name}</p>
-            <p className="text-xs text-slate-400">{email}</p>
-          </div>
+          <User className="w-4 h-4" />
+          Profil
+        </DropdownMenuItem>
 
-          <DropdownMenu.Item
-            onClick={onProfile}
-            className="dropdown-item"
-          >
-            <User className="w-4 h-4" />
-            Profile
-          </DropdownMenu.Item>
+        <DropdownMenuItem
+          onSelect={onSettings}
+          className="cursor-pointer focus:bg-slate-800 focus:text-white gap-2"
+        >
+          <Settings className="w-4 h-4" />
+          Pengaturan
+        </DropdownMenuItem>
 
-          <DropdownMenu.Item
-            onClick={onSettings}
-            className="dropdown-item"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </DropdownMenu.Item>
+        <DropdownMenuSeparator className="bg-slate-800" />
 
-          <DropdownMenu.Separator className="my-1 h-px bg-slate-800" />
-
-          <DropdownMenu.Item
-            onClick={onLogout}
-            className="dropdown-item text-red-400 focus:text-red-300"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+        <DropdownMenuItem
+          onSelect={onLogout}
+          className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10 gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Keluar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

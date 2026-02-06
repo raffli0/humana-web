@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, CheckCircle, XCircle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -40,7 +41,7 @@ function ActivateAccountContent() {
     useEffect(() => {
         async function validateToken() {
             if (!token) {
-                setError("No activation token provided.");
+                setError("Token aktivasi tidak ditemukan.");
                 setIsValidating(false);
                 return;
             }
@@ -48,7 +49,7 @@ function ActivateAccountContent() {
             const { data, error: fetchError } = await authService.getInvitationByToken(token);
 
             if (fetchError || !data) {
-                setError("Invalid or expired activation link. Please contact your administrator.");
+                setError("Tautan aktivasi tidak valid atau sudah kedaluwarsa. Silakan hubungi administrator Anda.");
                 setIsValidating(false);
                 return;
             }
@@ -88,13 +89,13 @@ function ActivateAccountContent() {
         const confirmPassword = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
 
         if (password !== confirmPassword) {
-            setError("Passwords do not match.");
+            setError("Kata sandi tidak cocok.");
             setIsLoading(false);
             return;
         }
 
         if (password.length < 8) {
-            setError("Password must be at least 8 characters.");
+            setError("Kata sandi harus minimal 8 karakter.");
             setIsLoading(false);
             return;
         }
@@ -107,7 +108,7 @@ function ActivateAccountContent() {
             );
 
             if (authError) throw authError;
-            if (!authData.user) throw new Error("Failed to create user account.");
+            if (!authData.user) throw new Error("Gagal membuat akun pengguna.");
 
             // Create profile
             const { error: profileError } = await authService.createProfile({
@@ -144,10 +145,10 @@ function ActivateAccountContent() {
             // Mark invitation as used
             await authService.markInvitationAsUsed(invitation.id);
 
-            alert("Account activated successfully! Please log in.");
+            alert("Akun berhasil diaktifkan! Silakan masuk.");
             router.push("/login");
         } catch (err: any) {
-            setError(err.message || "Failed to activate account.");
+            setError(err.message || "Gagal mengaktifkan akun.");
         }
 
         setIsLoading(false);
@@ -155,10 +156,25 @@ function ActivateAccountContent() {
 
     if (isValidating) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="text-center space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#0C212F]" />
-                    <p className="text-muted-foreground">Validating activation link...</p>
+            <div className="w-full min-h-screen grid lg:grid-cols-2">
+                <div className="hidden lg:flex flex-col justify-between bg-[#0C212F] p-10">
+                    <Skeleton className="h-8 w-32 bg-white/10" />
+                    <Skeleton className="h-24 w-full bg-white/10 rounded-lg" />
+                    <Skeleton className="h-4 w-48 bg-white/10" />
+                </div>
+                <div className="flex items-center justify-center p-6 bg-slate-50">
+                    <div className="w-full max-w-[400px] space-y-6">
+                        <div className="space-y-2 text-center">
+                            <Skeleton className="h-8 w-64 mx-auto" />
+                            <Skeleton className="h-4 w-48 mx-auto" />
+                        </div>
+                        <Skeleton className="h-32 w-full" />
+                        <div className="space-y-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -170,7 +186,7 @@ function ActivateAccountContent() {
                 <Card className="max-w-md w-full mx-4">
                     <CardHeader className="text-center">
                         <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-                        <CardTitle>Activation Failed</CardTitle>
+                        <CardTitle>Aktivasi Gagal</CardTitle>
                         <CardDescription>{error}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -179,7 +195,7 @@ function ActivateAccountContent() {
                             className="w-full"
                             onClick={() => router.push("/login")}
                         >
-                            Go to Login
+                            Ke Halaman Masuk
                         </Button>
                     </CardContent>
                 </Card>
@@ -204,9 +220,9 @@ function ActivateAccountContent() {
                     <div className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
                         <CheckCircle className="h-8 w-8 text-emerald-400" />
                         <div>
-                            <p className="font-medium">You've been invited!</p>
+                            <p className="font-medium">Anda telah diundang!</p>
                             <p className="text-sm text-white/60">
-                                Complete your account setup to get started.
+                                Selesaikan pengaturan akun Anda untuk memulai.
                             </p>
                         </div>
                     </div>
@@ -215,8 +231,8 @@ function ActivateAccountContent() {
                 <div className="text-xs text-white/40 flex justify-between">
                     <span>© 2026 Humana Inc.</span>
                     <div className="flex gap-4">
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
+                        <a href="#" className="hover:text-white transition-colors">Privasi</a>
+                        <a href="#" className="hover:text-white transition-colors">Ketentuan</a>
                     </div>
                 </div>
             </div>
@@ -226,10 +242,10 @@ function ActivateAccountContent() {
                 <div className="mx-auto w-full max-w-[400px] space-y-6">
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">
-                            Activate Your Account
+                            Aktifkan Akun Anda
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Set up your password to complete registration
+                            Atur kata sandi Anda untuk menyelesaikan pendaftaran
                         </p>
                     </div>
 
@@ -241,11 +257,11 @@ function ActivateAccountContent() {
                                     <span className="font-medium">{invitation.email}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Company</span>
+                                    <span className="text-muted-foreground">Perusahaan</span>
                                     <span className="font-medium">{invitation.company_name || "—"}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Role</span>
+                                    <span className="text-muted-foreground">Peran</span>
                                     <span className="font-medium capitalize">{invitation.role.replace("_", " ")}</span>
                                 </div>
                             </CardContent>
@@ -261,7 +277,7 @@ function ActivateAccountContent() {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">Kata Sandi</Label>
                             <div className="relative">
                                 <Input
                                     id="password"
@@ -270,7 +286,7 @@ function ActivateAccountContent() {
                                     required
                                     minLength={8}
                                     className="pr-10 bg-white"
-                                    placeholder="Min. 8 characters"
+                                    placeholder="Minimal 8 karakter"
                                 />
                                 <button
                                     type="button"
@@ -283,7 +299,7 @@ function ActivateAccountContent() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi</Label>
                             <div className="relative">
                                 <Input
                                     id="confirmPassword"
@@ -292,7 +308,7 @@ function ActivateAccountContent() {
                                     required
                                     minLength={8}
                                     className="pr-10 bg-white"
-                                    placeholder="Re-enter password"
+                                    placeholder="Masukkan kembali kata sandi"
                                 />
                                 <button
                                     type="button"
@@ -310,7 +326,7 @@ function ActivateAccountContent() {
                             disabled={isLoading}
                         >
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Activate Account
+                            Aktifkan Akun
                         </Button>
                     </form>
                 </div>
@@ -323,7 +339,7 @@ export default function ActivateAccountPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-slate-50 font-medium text-slate-500">
-                Loading...
+                Memuat...
             </div>
         }>
             <ActivateAccountContent />

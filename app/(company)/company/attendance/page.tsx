@@ -26,6 +26,7 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import AttendanceMap from "./AttendanceMap";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { useAttendanceViewModel } from "@/src/presentation/hooks/useAttendanceViewModel";
 
 
@@ -197,8 +198,16 @@ export default function Attendance() {
 
           <CardContent className="flex-1 overflow-y-auto p-0 bg-white">
             {loading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <div className="p-4 space-y-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="divide-y divide-gray-50">

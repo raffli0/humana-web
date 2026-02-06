@@ -22,7 +22,8 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
         location: "On-site",
         type: "Full-time",
         salary_range: "",
-        description: ""
+        description: "",
+        requirements: ""
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -58,7 +59,8 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
                 location: "On-site",
                 type: "Full-time",
                 salary_range: "",
-                description: ""
+                description: "",
+                requirements: ""
             });
         } catch (error) {
             console.error("Failed to create job:", error);
@@ -158,6 +160,18 @@ export function CreateJobDialog({ open, onOpenChange, onSubmit }: CreateJobDialo
                             required
                             className="min-h-[100px]"
                             value={formData.description}
+                            onChange={handleChange}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="requirements">Persyaratan</Label>
+                        <Textarea
+                            id="requirements"
+                            name="requirements"
+                            placeholder="Kualifikasi dan persyaratan yang dibutuhkan..."
+                            className="min-h-[100px]"
+                            value={formData.requirements}
                             onChange={handleChange}
                         />
                     </div>

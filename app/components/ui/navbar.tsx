@@ -16,10 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [profile, setProfile] = useState<{ full_name: string | null; email: string | null }>({
-    full_name: "",
-    email: "",
-  });
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   const isPlatform = pathname.startsWith("/platform");
 
@@ -27,10 +24,7 @@ export default function Navbar() {
     async function fetchProfile() {
       const profile = await authService.getCurrentProfile();
       if (profile) {
-        setProfile({
-          full_name: profile.full_name,
-          email: profile.email,
-        });
+        setProfile(profile);
       }
     }
     fetchProfile();
@@ -112,10 +106,10 @@ export default function Navbar() {
 
         <div className="hidden md:flex justify-end">
           <ProfileDropdown
-            name={profile.full_name || "User"}
-            email={profile.email || ""}
-            avatarUrl="https://avatars.githubusercontent.com/u/1"
-            onProfile={() => console.log("Profile")}
+            name={profile?.full_name || "User"}
+            email={profile?.email || ""}
+            avatarUrl={profile?.avatar_url || "https://avatars.githubusercontent.com/u/1"}
+            onProfile={() => router.push(isPlatform ? "/platform/profile" : "/company/profile")}
             onSettings={() => router.push(isPlatform ? "/platform/settings" : "/company/settings")}
             onLogout={async () => {
               await authService.signOut();

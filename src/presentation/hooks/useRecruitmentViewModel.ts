@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { recruitmentRepository } from '../../infrastructure/supabase/SupabaseRecruitmentRepository';
 import { authService } from '../../infrastructure/auth/authService';
-import { GetJobPostsUseCase, GetCandidatesUseCase, UpdateCandidateStatusUseCase, CreateJobPostUseCase } from '../../application/recruitment/RecruitmentUseCases';
+import { GetJobPostsUseCase, GetCandidatesUseCase, UpdateCandidateStatusUseCase, CreateJobPostUseCase, UpdateJobStatusUseCase, UpdateJobPostUseCase } from '../../application/recruitment/RecruitmentUseCases';
 import { JobPost, Candidate, RecruitmentSummary } from '../../domain/recruitment/recruitment';
 
 export function useRecruitmentViewModel() {
@@ -14,6 +14,8 @@ export function useRecruitmentViewModel() {
     const getCandidatesUseCase = new GetCandidatesUseCase(recruitmentRepository);
     const updateCandidateStatusUseCase = new UpdateCandidateStatusUseCase(recruitmentRepository);
     const createJobPostUseCase = new CreateJobPostUseCase(recruitmentRepository);
+    const updateJobStatusUseCase = new UpdateJobStatusUseCase(recruitmentRepository);
+    const updateJobPostUseCase = new UpdateJobPostUseCase(recruitmentRepository);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -66,6 +68,26 @@ export function useRecruitmentViewModel() {
         }
     };
 
+    const updateJobStatus = async (jobId: string, status: string) => {
+        setIsSubmitting(true);
+        try {
+            await updateJobStatusUseCase.execute(jobId, status);
+            setJobPosts(prev => prev.map(j => j.id === jobId ? { ...j, status } : j));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const updateJobPost = async (jobId: string, job: Partial<JobPost>) => {
+        setIsSubmitting(true);
+        try {
+            await updateJobPostUseCase.execute(jobId, job);
+            await fetchData();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const summary: RecruitmentSummary = {
         open_jobs: jobPosts.filter(j => j.status === 'Open').length,
         total_candidates: candidates.length,
@@ -80,6 +102,8 @@ export function useRecruitmentViewModel() {
         isSubmitting,
         updateStatus,
         createJob,
+        updateJobStatus,
+        updateJobPost,
         refresh: fetchData
     };
 }

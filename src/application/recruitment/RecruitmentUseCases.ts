@@ -32,3 +32,19 @@ export class CreateJobPostUseCase {
         await this.recruitmentRepo.createJobPost(job);
     }
 }
+
+export class UpdateJobStatusUseCase {
+    constructor(private recruitmentRepo: IRecruitmentRepository) { }
+
+    async execute(jobId: string, status: string): Promise<void> {
+        await this.recruitmentRepo.updateJobStatus(jobId, status);
+    }
+}
+
+export class UpdateJobPostUseCase {
+    constructor(private recruitmentRepo: IRecruitmentRepository) { }
+
+    async execute(jobId: string, job: Partial<JobPost>): Promise<void> {
+        await this.recruitmentRepo.updateJobPost(jobId, job);
+    }
+}

@@ -3,6 +3,7 @@ export interface JobPost {
     title: string;
     slug: string; // Added slug
     description: string | null;
+    requirements: string | null; // Added requirements
     department: string | null;
     location: string | null;
     type: string | null; // e.g., 'Full-time', 'Contract'
